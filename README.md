@@ -3,7 +3,7 @@
 ## Description
 
 libseek-thermal is a user space driver for the SEEK thermal camera series built on libusb and libopencv.
-The code is based on work of
+The code is based on https://github.com/BjornVT/Masterproef.git
 
 ## Compilation
 
