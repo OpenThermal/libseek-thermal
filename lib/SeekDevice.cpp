@@ -68,8 +68,6 @@ bool SeekDevice::open()
         return false;
 	}
 
-    //TODO: wait until device is ready to communicate vendor specific stuff
-
     return true;
 }
 

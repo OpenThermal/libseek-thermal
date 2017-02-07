@@ -38,7 +38,6 @@ public:
      *  Returns true on success
      */
     virtual bool retrieve(cv::Mat& dst) = 0;
-    virtual bool retrieveRaw(cv::Mat& dst) = 0;
 
     /*
      *  Read grabs and retrieves a frame

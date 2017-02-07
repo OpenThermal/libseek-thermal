@@ -22,7 +22,7 @@ int main(int argc, char** argv)
             return -1;
         }
 
-		seek.retrieveRaw(frame);
+		seek.retrieve(frame);
         cv::normalize(frame, frame, 0, 65535, cv::NORM_MINMAX);
 
         cv::imshow("LWIR", frame);

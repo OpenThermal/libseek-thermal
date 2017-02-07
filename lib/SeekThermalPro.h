@@ -40,7 +40,6 @@ public:
      *  Returns true on success
      */
     virtual bool retrieve(cv::Mat& dst);
-    virtual bool retrieveRaw(cv::Mat& dst);
 
 private:
     const int m_level_shift;

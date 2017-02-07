@@ -29,8 +29,6 @@ SeekThermalPro::~SeekThermalPro()
 
 bool SeekThermalPro::open()
 {
-	bool has_frame_ffc = false;
-	bool has_frame_dpm = false;
     int i;
 
 	if (!m_dev.open()) {
@@ -38,38 +36,30 @@ bool SeekThermalPro::open()
         return false;
     }
 
-    /* cam specific configuration */
-    if (!init_cam()) {
-        debug("Error: init_cam failed\n");
-        return false;
-    }
-
-    for (i=0; i<10; i++) {
-		if(!get_frame()) {
-            debug("Error: frame acquisition failed\n");
-			return false;
+    /* init retry loop: sometimes cam skips first 512 bytes of first frame (needed for dead pixel filter) */
+    for (i=0; i<3; i++) {
+        /* cam specific configuration */
+        if (!init_cam()) {
+            debug("Error: init_cam failed\n");
+            return false;
         }
 
-		debug("Status: %d\n", frame_id());
-
-		if (frame_id() == 1) {
-			m_raw_frame.copyTo(m_flat_field_calibration_frame);
-			has_frame_ffc = true;
-
-		} else if(frame_id() == 4) {
-			m_raw_frame.convertTo(m_dead_pixel_mask, CV_8UC1);
-            create_dead_pixel_list();
-			has_frame_dpm = true;
-		}
-
-        if (has_frame_ffc && has_frame_dpm) {
-            m_frame_counter = 0;
-            m_is_open = true;
-            return true;
+		if (!get_frame()) {
+            debug("Error: first frame acquisition failed, retry attempt %d\n", i+1);
+            continue;
         }
+
+        if (frame_id() != 4) {
+            debug("Error: expected first frame to have id 4\n");
+            return false;
+        }
+
+        m_raw_frame.convertTo(m_dead_pixel_mask, CV_8UC1);
+        create_dead_pixel_list();
+        return grab();
     }
 
-    debug("Error: calibration frame acquisition failed\n");
+    debug("Error: max init retry count exceeded\n");
     return false;
 }
 
@@ -90,7 +80,9 @@ bool SeekThermalPro::grab()
 
 		} else if (frame_id() == 1) {
 			m_raw_frame.copyTo(m_flat_field_calibration_frame);
-		}
+		} else if (frame_id() == 7) {
+            //m_raw_frame.copyTo(m_cal);
+        }
 	}
 
 	return false;
@@ -98,14 +90,9 @@ bool SeekThermalPro::grab()
 
 bool SeekThermalPro::retrieve(cv::Mat& dst)
 {
-    //TODO
-    return true;
-}
-
-bool SeekThermalPro::retrieveRaw(cv::Mat& dst)
-{
     /* apply flat field calibration */
 	m_raw_frame += m_level_shift - m_flat_field_calibration_frame;
+	//m_raw_frame += m_level_shift - m_cal;
     /* filter out dead pixels */
     apply_dead_pixel_filter();
     dst = m_frame;
@@ -304,7 +291,7 @@ uint16_t SeekThermalPro::calc_mean_value(cv::Point p, int right_border, int lowe
             value += temp;
             div++;
         }
-    } 
+    }
     if (p.x != right_border) {
         /* if not on the right border of the image */
         temp = m_frame.at<uint16_t>(p.y, p.x+1);
