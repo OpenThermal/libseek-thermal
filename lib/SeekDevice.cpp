@@ -13,7 +13,8 @@ using namespace LibSeek;
 SeekDevice::SeekDevice(int vendor_id, int product_id, int timeout) :
     m_vendor_id(vendor_id),
     m_product_id(product_id),
-    m_timeout(timeout) { }
+    m_timeout(timeout),
+    m_is_opened(false) { }
 
 SeekDevice::~SeekDevice()
 {
@@ -68,6 +69,7 @@ bool SeekDevice::open()
         return false;
 	}
 
+    m_is_opened = true;
     return true;
 }
 
@@ -83,6 +85,13 @@ void SeekDevice::close()
 		libusb_exit(m_ctx);                     /* revert exit */
 		m_ctx = NULL;
 	}
+
+    m_is_opened = false;
+}
+
+bool SeekDevice::isOpened()
+{
+    return m_is_opened;
 }
 
 bool SeekDevice::request_set(DeviceCommand::Enum command, vector<uint8_t>& data)

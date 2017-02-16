@@ -1,27 +1,27 @@
 /*
- *  Seek thermal pro interface
+ *  Seek thermal interface
  *  Author: Maarten Vandersteegen
  */
 
-#ifndef SEEK_THERMAL_PRO_H
-#define SEEK_THERMAL_PRO_H
+#ifndef SEEK_THERMAL_H
+#define SEEK_THERMAL_H
 
 #include <opencv2/opencv.hpp>
 #include "SeekCam.h"
 
-#define THERMAL_PRO_WIDTH       320
-#define THERMAL_PRO_HEIGHT      240
-#define THERMAL_PRO_RAW_WIDTH   342
-#define THERMAL_PRO_RAW_HEIGHT  260
-#define THERMAL_PRO_RAW_SIZE    (THERMAL_PRO_RAW_WIDTH * THERMAL_PRO_RAW_HEIGHT)
+#define THERMAL_WIDTH       207
+#define THERMAL_HEIGHT      154
+#define THERMAL_RAW_WIDTH   208
+#define THERMAL_RAW_HEIGHT  156
+#define THERMAL_RAW_SIZE    (THERMAL_RAW_WIDTH * THERMAL_RAW_HEIGHT)
 
 namespace LibSeek {
 
-class SeekThermalPro: public SeekCam
+class SeekThermal: public SeekCam
 {
 public:
-    SeekThermalPro();
-    ~SeekThermalPro();
+    SeekThermal();
+    ~SeekThermal();
 
     /*
      *  Initialize the camera
@@ -56,7 +56,7 @@ private:
 
     bool m_is_opened;
     SeekDevice m_dev;
-    uint16_t m_raw_data[THERMAL_PRO_RAW_SIZE];
+    uint16_t m_raw_data[THERMAL_RAW_SIZE];
     cv::Mat m_raw_frame;
     cv::Mat m_frame;
     cv::Mat m_flat_field_calibration_frame;
@@ -74,4 +74,4 @@ private:
 
 } /* LibSeek */
 
-#endif /* SEEK_THERMAL_PRO_H */
+#endif /* SEEK_THERMAL_H */

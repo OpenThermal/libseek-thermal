@@ -1,34 +1,34 @@
 /*
- *  Seek thermal pro implementation
+ *  Seek thermal implementation
  *  Author: Maarten Vandersteegen
  */
 
-#include "SeekThermalPro.h"
+#include "SeekThermal.h"
 #include <endian.h>
 
 using namespace LibSeek;
 
-SeekThermalPro::SeekThermalPro() :
+SeekThermal::SeekThermal() :
     m_offset(0x4000),
     m_is_opened(false),
-    m_dev(0x289d, 0x0011),
-    m_raw_frame(THERMAL_PRO_RAW_HEIGHT,
-                THERMAL_PRO_RAW_WIDTH,
+    m_dev(0x289d, 0x0010),
+    m_raw_frame(THERMAL_RAW_HEIGHT,
+                THERMAL_RAW_WIDTH,
                 CV_16UC1,
                 m_raw_data,
                 cv::Mat::AUTO_STEP),
-    m_frame(THERMAL_PRO_HEIGHT, THERMAL_PRO_WIDTH, CV_16UC1)
+    m_frame(THERMAL_HEIGHT, THERMAL_WIDTH, CV_16UC1)
 {
     /* set ROI to exclude metadata frame regions */
-    m_raw_frame = m_raw_frame(cv::Rect(1, 4, THERMAL_PRO_WIDTH, THERMAL_PRO_HEIGHT));
+    m_raw_frame = m_raw_frame(cv::Rect(0, 1, THERMAL_WIDTH, THERMAL_HEIGHT));
 }
 
-SeekThermalPro::~SeekThermalPro()
+SeekThermal::~SeekThermal()
 {
     close();
 }
 
-bool SeekThermalPro::open()
+bool SeekThermal::open()
 {
     int i;
 
@@ -71,7 +71,7 @@ bool SeekThermalPro::open()
     return false;
 }
 
-void SeekThermalPro::close()
+void SeekThermal::close()
 {
     if (m_dev.isOpened()) {
         vector<uint8_t> data = { 0x00, 0x00 };
@@ -82,12 +82,12 @@ void SeekThermalPro::close()
     m_is_opened = false;
 }
 
-bool SeekThermalPro::isOpened()
+bool SeekThermal::isOpened()
 {
     return m_is_opened;
 }
 
-bool SeekThermalPro::grab()
+bool SeekThermal::grab()
 {
     int i;
 
@@ -110,7 +110,7 @@ bool SeekThermalPro::grab()
 	return false;
 }
 
-bool SeekThermalPro::retrieve(cv::Mat& dst)
+bool SeekThermal::retrieve(cv::Mat& dst)
 {
     /* apply flat field calibration */
 	m_raw_frame += m_offset;
@@ -122,7 +122,8 @@ bool SeekThermalPro::retrieve(cv::Mat& dst)
 	return true;
 }
 
-bool SeekThermalPro::init_cam()
+// TODO keep as specific method
+bool SeekThermal::init_cam()
 {
     {
         vector<uint8_t> data = { 0x01 };
@@ -151,6 +152,40 @@ bool SeekThermalPro::init_cam()
         print_usb_data(data);
     }
     {
+		//vector<uint8_t> data = { 0x20, 0x00, 0x30, 0x00, 0x00, 0x00 };
+		vector<uint8_t> data = { 0x60, 0x00, 0x80, 0x00, 0x00, 0x00 };
+        if (!m_dev.request_set(DeviceCommand::SET_FACTORY_SETTINGS_FEATURES, data))
+            return false;
+    }
+    {
+		vector<uint8_t> data(64);
+        if (!m_dev.request_get(DeviceCommand::GET_FACTORY_SETTINGS, data))
+            return false;
+        print_usb_data(data);
+    }
+    {
+		vector<uint8_t> data = { 0x20, 0x00, 0x50, 0x00, 0x00, 0x00 };
+        if (!m_dev.request_set(DeviceCommand::SET_FACTORY_SETTINGS_FEATURES, data))
+            return false;
+    }
+    {
+		vector<uint8_t> data(64);
+        if (!m_dev.request_get(DeviceCommand::GET_FACTORY_SETTINGS, data))
+            return false;
+        print_usb_data(data);
+    }
+    {
+		vector<uint8_t> data = { 0x0c, 0x00, 0x70, 0x00, 0x00, 0x00 };
+        if (!m_dev.request_set(DeviceCommand::SET_FACTORY_SETTINGS_FEATURES, data))
+            return false;
+    }
+    {
+		vector<uint8_t> data(24);
+        if (!m_dev.request_get(DeviceCommand::GET_FACTORY_SETTINGS, data))
+            return false;
+        print_usb_data(data);
+    }
+    {
 		vector<uint8_t> data = { 0x06, 0x00, 0x08, 0x00, 0x00, 0x00 };
         if (!m_dev.request_set(DeviceCommand::SET_FACTORY_SETTINGS_FEATURES, data))
             return false;
@@ -162,65 +197,13 @@ bool SeekThermalPro::init_cam()
         print_usb_data(data);
     }
     {
-		vector<uint8_t> data = { 0x17, 0x00 };
-        if (!m_dev.request_set(DeviceCommand::SET_FIRMWARE_INFO_FEATURES, data))
-            return false;
-    }
-    {
-		vector<uint8_t> data(64);
-        if (!m_dev.request_get(DeviceCommand::GET_FIRMWARE_INFO, data))
-            return false;
-        print_usb_data(data);
-    }
-    {
-		vector<uint8_t> data = { 0x01, 0x00, 0x00, 0x06, 0x00, 0x00 };
-        if (!m_dev.request_set(DeviceCommand::SET_FACTORY_SETTINGS_FEATURES, data))
+		vector<uint8_t> data = { 0x08, 0x00 };
+        if (!m_dev.request_set(DeviceCommand::SET_IMAGE_PROCESSING_MODE, data))
             return false;
     }
     {
 		vector<uint8_t> data(2);
-        if (!m_dev.request_get(DeviceCommand::GET_FACTORY_SETTINGS, data))
-            return false;
-        print_usb_data(data);
-    }
-    {
-		vector<uint8_t> data = { 0x01, 0x00, 0x01, 0x06, 0x00, 0x00 };
-        if (!m_dev.request_set(DeviceCommand::SET_FACTORY_SETTINGS_FEATURES, data))
-            return false;
-    }
-    {
-		vector<uint8_t> data(2);
-        if (!m_dev.request_get(DeviceCommand::GET_FACTORY_SETTINGS, data))
-            return false;
-        print_usb_data(data);
-    }
-
-    uint16_t addr, addrle;
-    uint8_t *addrle_p = reinterpret_cast<uint8_t*>(&addrle);
-
-    for (addr=0; addr<2560; addr+=32) {
-        {
-            addrle = htole16(addr); /* mind endianness */
-            vector<uint8_t> data = { 0x20, 0x00, addrle_p[0], addrle_p[1], 0x00, 0x00 };
-            if (!m_dev.request_set(DeviceCommand::SET_FACTORY_SETTINGS_FEATURES, data))
-                return false;
-        }
-        {
-            vector<uint8_t> data(64);
-            if (!m_dev.request_get(DeviceCommand::GET_FACTORY_SETTINGS, data))
-                return false;
-            print_usb_data(data);
-        }
-    }
-
-    {
-		vector<uint8_t> data = { 0x15, 0x00 };
-        if (!m_dev.request_set(DeviceCommand::SET_FIRMWARE_INFO_FEATURES, data))
-            return false;
-    }
-    {
-        vector<uint8_t> data(64);
-        if (!m_dev.request_get(DeviceCommand::GET_FIRMWARE_INFO, data))
+        if (!m_dev.request_get(DeviceCommand::GET_OPERATION_MODE, data))
             return false;
         print_usb_data(data);
     }
@@ -231,38 +214,46 @@ bool SeekThermalPro::init_cam()
     }
     {
 		vector<uint8_t> data = { 0x01, 0x00 };
-        if (!m_dev.request_set(DeviceCommand::SET_OPERATION_MODE, data))
+        if (!m_dev.request_set(DeviceCommand::SET_IMAGE_PROCESSING_MODE, data))
             return false;
+    }
+    {
+		vector<uint8_t> data(2);
+        if (!m_dev.request_get(DeviceCommand::GET_OPERATION_MODE, data))
+            return false;
+        print_usb_data(data);
     }
 
     return true;
 }
 
-bool SeekThermalPro::get_frame()
+bool SeekThermal::get_frame()
 {
-    /* request new frame */
-    vector<uint8_t> data = { 0x58, 0x5b, 0x01, 0 };
+    /* request new frame (number of pixels) */
+    /* TODO: data = raw number of pixels */
+    vector<uint8_t> data = { 0xC0, 0x7E, 0, 0 };
+
     if (!m_dev.request_set(DeviceCommand::START_GET_IMAGE_TRANSFER, data))
         return false;
 
     /* store frame data */
-    if (!m_dev.fetch_frame(m_raw_data, THERMAL_PRO_RAW_SIZE))
+    if (!m_dev.fetch_frame(m_raw_data, THERMAL_RAW_SIZE))
         return false;
 
     return true;
 }
 
-int SeekThermalPro::frame_id()
+int SeekThermal::frame_id()
 {
-	return m_raw_data[2];
+	return m_raw_data[10];
 }
 
-int SeekThermalPro::frame_counter()
+int SeekThermal::frame_counter()
 {
-	return m_raw_data[1];
+	return m_raw_data[40];
 }
 
-void SeekThermalPro::create_dead_pixel_list()
+void SeekThermal::create_dead_pixel_list()
 {
     int x, y;
 	m_dead_pixel_list.clear();
@@ -276,7 +267,7 @@ void SeekThermalPro::create_dead_pixel_list()
 	}
 }
 
-void SeekThermalPro::apply_dead_pixel_filter()
+void SeekThermal::apply_dead_pixel_filter()
 {
     size_t i;
 	size_t size = m_dead_pixel_list.size();
@@ -293,7 +284,7 @@ void SeekThermalPro::apply_dead_pixel_filter()
     }
 }
 
-uint16_t SeekThermalPro::calc_mean_value(cv::Point p, int right_border, int lower_border)
+uint16_t SeekThermal::calc_mean_value(cv::Point p, int right_border, int lower_border)
 {
     uint32_t value = 0, temp;
     uint32_t div = 0;

@@ -83,6 +83,11 @@ public:
     void close();
 
     /*
+     *  Return true when usb device is opened
+     */
+    bool isOpened();
+
+    /*
      *  vendor specific requests for setting data
      *  command:    request command
      *  data:       configuration data to send
@@ -110,6 +115,7 @@ private:
     int m_vendor_id;
     int m_product_id;
     int m_timeout;
+    bool m_is_opened;
 
     struct libusb_context* m_ctx = NULL;
     struct libusb_device_handle* m_handle = NULL;

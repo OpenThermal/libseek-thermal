@@ -8,7 +8,7 @@
 
 int main(int argc, char** argv)
 {
-    LibSeek::SeekThermal seek;
+    LibSeek::SeekThermalPro seek;
     cv::Mat frame;
 
     if (!seek.open()) {
@@ -23,7 +23,10 @@ int main(int argc, char** argv)
         }
 
 		seek.retrieve(frame);
+        // covert to 8-bit grayscale
+        //frame_raw.convertTo(frame, CV_8UC1, 0.015625);
         cv::normalize(frame, frame, 0, 65535, cv::NORM_MINMAX);
+        cv::GaussianBlur(frame, frame, cv::Size(3,3), 0);
 
         cv::imshow("LWIR", frame);
 

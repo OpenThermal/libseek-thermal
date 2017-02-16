@@ -1,14 +1,15 @@
 include ../variables.mk
 
-SRC = $(wildcard *.cpp)
-OBJ = $(LIBSRC:.cpp=.o)
 LIBDIR =../lib
 CXXFLAGS += -I$(LIBDIR)
 
-test: $(OBJ) $(LIBDIR)/$(LIBSEEK)
+all: test_pro test
+
+test_pro: test_pro.o $(LIBDIR)/$(LIBSEEK)
+test: test.o $(LIBDIR)/$(LIBSEEK)
 
 clean:
-	rm -rf $(OBJ) test
+	rm -rf test_pro test *.o
 
-.PHONY: clean
+.PHONY: clean all
 
