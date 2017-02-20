@@ -21,55 +21,12 @@ class SeekThermalPro: public SeekCam
 {
 public:
     SeekThermalPro();
-    ~SeekThermalPro();
 
-    /*
-     *  Initialize the camera
-     *  Returns true on success
-     */
-    virtual bool open();
+    uint16_t m_buffer[THERMAL_PRO_RAW_SIZE];
 
-    /*
-     *  De-initialise the camera
-     */
-    virtual void close();
-
-    /*
-     *  Check if device is open
-     */
-    virtual bool isOpened();
-
-    /*
-     *  Grab a frame
-     *  Returns true on success
-     */
-    virtual bool grab();
-
-    /*
-     *  Retrieve the last grabbed frame
-     *  Returns true on success
-     */
-    virtual bool retrieve(cv::Mat& dst);
-
-private:
-    const int m_offset;
-
-    bool m_is_opened;
-    SeekDevice m_dev;
-    uint16_t m_raw_data[THERMAL_PRO_RAW_SIZE];
-    cv::Mat m_raw_frame;
-    cv::Mat m_frame;
-    cv::Mat m_flat_field_calibration_frame;
-    cv::Mat m_dead_pixel_mask;
-    std::vector<cv::Point> m_dead_pixel_list;
-
-    bool init_cam();
-    bool get_frame();
-    int frame_id();
-    int frame_counter();
-    void create_dead_pixel_list();
-    void apply_dead_pixel_filter();
-    uint16_t calc_mean_value(cv::Point p, int right_border, int lower_border);
+    virtual bool init_cam();
+    virtual int frame_id();
+    virtual int frame_counter();
 };
 
 } /* LibSeek */
