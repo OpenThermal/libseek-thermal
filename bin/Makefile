@@ -1,5 +1,3 @@
-include ../variables.mk
-
 LIBDIR =../lib
 CXXFLAGS += -I$(LIBDIR)
 

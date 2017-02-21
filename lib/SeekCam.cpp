@@ -4,6 +4,7 @@
  */
 
 #include "SeekCam.h"
+#include "SeekDebug.h"
 
 using namespace LibSeek;
 

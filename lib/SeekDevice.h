@@ -12,8 +12,6 @@
 
 using namespace std;
 
-#define debug printf
-
 namespace LibSeek {
 
 struct DeviceCommand {

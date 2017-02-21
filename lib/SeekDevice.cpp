@@ -4,7 +4,7 @@
  */
 
 #include "SeekDevice.h"
-
+#include "SeekDebug.h"
 #include <endian.h>
 #include <stdio.h>
 

@@ -4,6 +4,7 @@
  */
 
 #include "SeekThermal.h"
+#include "SeekDebug.h"
 #include <endian.h>
 
 using namespace LibSeek;

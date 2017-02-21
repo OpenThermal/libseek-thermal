@@ -1,5 +1,3 @@
-include ../variables.mk
-
 LIBSRC=$(wildcard *.cpp)
 LIBOBJ=$(LIBSRC:.cpp=.o)
 
