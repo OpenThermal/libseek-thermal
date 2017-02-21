@@ -20,7 +20,7 @@ The added value of this library is the support for the compact pro.
 
 The library depends on libusb-1.0 and opencv (tested with opencv 3.2).
 To compile just type 'make' in the root directory.
-To get debug data build with 'make DEBUG=1'.
+To get debug verbosity, build with 'make DEBUG=1'.
 
 ## Running code samples
 
@@ -44,4 +44,9 @@ sudo chmod 666 /dev/bus/usb/00x/00x
 
 with '00x' the usb bus found with the lsusb command
 
-Run the examples
+Run the examples:
+
+```
+./bin/test      # Thermal Compact
+./bin/test_pro  # Thermal Compact Pro
+```
