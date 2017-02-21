@@ -17,12 +17,12 @@ int main(int argc, char** argv)
     }
 
     while(1) {
-		if (!seek.grab()) {
+        if (!seek.grab()) {
             std::cout << "no more LWIR img" << endl;
             return -1;
         }
 
-		seek.retrieve(frame);
+        seek.retrieve(frame);
         cv::normalize(frame, frame, 0, 65535, cv::NORM_MINMAX);
 
         cv::imshow("LWIR", frame);

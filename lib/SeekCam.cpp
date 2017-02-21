@@ -34,7 +34,7 @@ bool SeekCam::open()
 {
     int i;
 
-	if (!m_dev.open()) {
+    if (!m_dev.open()) {
         debug("Error: open failed\n");
         return false;
     }
@@ -47,7 +47,7 @@ bool SeekCam::open()
             return false;
         }
 
-		if (!get_frame()) {
+        if (!get_frame()) {
             debug("Error: first frame acquisition failed, retry attempt %d\n", i+1);
             continue;
         }
@@ -93,44 +93,44 @@ bool SeekCam::grab()
 {
     int i;
 
-	for (i=0; i<10; i++) {
-		if(!get_frame()) {
+    for (i=0; i<10; i++) {
+        if(!get_frame()) {
             debug("Error: frame acquisition failed\n");
-			return false;
+            return false;
         }
 
-		if (frame_id() == 3) {
-			return true;
+        if (frame_id() == 3) {
+            return true;
 
-		} else if (frame_id() == 1) {
-			m_raw_frame.copyTo(m_flat_field_calibration_frame);
+        } else if (frame_id() == 1) {
+            m_raw_frame.copyTo(m_flat_field_calibration_frame);
         }
-	}
+    }
 
-	return false;
+    return false;
 }
 
 bool SeekCam::retrieve(cv::Mat& dst)
 {
     /* apply flat field calibration */
-	m_raw_frame += m_offset;
+    m_raw_frame += m_offset;
     m_raw_frame -= m_flat_field_calibration_frame;
     /* filter out dead pixels */
     apply_dead_pixel_filter();
     dst = m_frame;
 
-	return true;
+    return true;
 }
 
 bool SeekCam::read(cv::Mat& dst)
 {
-	if (!grab())
+    if (!grab())
         return false;
 
     if (!retrieve(dst))
         return false;
 
-	return true;
+    return true;
 }
 
 bool SeekCam::get_frame()
@@ -161,30 +161,30 @@ void SeekCam::print_usb_data(vector<uint8_t>& data)
 void SeekCam::create_dead_pixel_list()
 {
     int x, y;
-	m_dead_pixel_list.clear();
+    m_dead_pixel_list.clear();
 
-	for (y=0; y<m_dead_pixel_mask.rows; y++) {
-		for (x=0; x<m_dead_pixel_mask.cols; x++) {
-			if (m_dead_pixel_mask.at<uint8_t>(y, x) == 0) {
-				m_dead_pixel_list.push_back(cv::Point(x, y));
-			}
-		}
-	}
+    for (y=0; y<m_dead_pixel_mask.rows; y++) {
+        for (x=0; x<m_dead_pixel_mask.cols; x++) {
+            if (m_dead_pixel_mask.at<uint8_t>(y, x) == 0) {
+                m_dead_pixel_list.push_back(cv::Point(x, y));
+            }
+        }
+    }
 }
 
 void SeekCam::apply_dead_pixel_filter()
 {
     size_t i;
-	size_t size = m_dead_pixel_list.size();
-	int right_border = m_frame.cols - 1;
+    size_t size = m_dead_pixel_list.size();
+    int right_border = m_frame.cols - 1;
     int lower_border = m_frame.rows - 1;
 
     m_frame.setTo(0xffff);                              /* value to identify dead pixels */
     m_raw_frame.copyTo(m_frame, m_dead_pixel_mask);     /* only copy non dead pixel values */
 
     /* replace dead pixel values (0xffff) with the mean of its non dead surrounding pixels */
-	for (i=0; i<size; i++) {
-		cv::Point p = m_dead_pixel_list[i];
+    for (i=0; i<size; i++) {
+        cv::Point p = m_dead_pixel_list[i];
         m_frame.at<uint16_t>(p) = calc_mean_value(p, right_border, lower_border);
     }
 }

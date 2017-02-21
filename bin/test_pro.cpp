@@ -17,14 +17,12 @@ int main(int argc, char** argv)
     }
 
     while(1) {
-		if (!seek.grab()) {
+        if (!seek.grab()) {
             std::cout << "no more LWIR img" << endl;
             return -1;
         }
 
-		seek.retrieve(frame);
-        // covert to 8-bit grayscale
-        //frame_raw.convertTo(frame, CV_8UC1, 0.015625);
+        seek.retrieve(frame);
         cv::normalize(frame, frame, 0, 65535, cv::NORM_MINMAX);
         cv::GaussianBlur(frame, frame, cv::Size(3,3), 0);
 
