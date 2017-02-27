@@ -1,13 +1,14 @@
 LIBDIR =../lib
 CXXFLAGS += -I$(LIBDIR)
 
-all: test_pro test
+all: test_pro test create_flat_field
 
 test_pro: test_pro.o $(LIBDIR)/$(LIBSEEK)
 test: test.o $(LIBDIR)/$(LIBSEEK)
+create_flat_field: create_flat_field.o $(LIBDIR)/$(LIBSEEK)
 
 clean:
-	rm -rf test_pro test *.o
+	rm -rf test_pro test create_flat_field *.o
 
 .PHONY: clean all
 

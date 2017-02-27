@@ -37,10 +37,16 @@ public:
     bool grab();
 
     /*
-     *  Retrieve the last grabbed frame
+     *  Retrieve the last grabbed 14-bit frame
      *  Returns true on success
      */
     bool retrieve(cv::Mat& dst);
+
+    /*
+     *  Convert a 14-bit thermal measurement to an
+     *  enhanced 8-bit greyscale image for visual inspection
+     */
+    void convertToGreyScale(cv::Mat& src, cv::Mat& dst);
 
     /*
      *  Read grabs and retrieves a frame
@@ -80,6 +86,7 @@ protected:
     size_t m_raw_data_size;
     cv::Mat m_raw_frame;
     cv::Mat m_frame;
+    cv::Mat m_grey_frame;
     cv::Mat m_flat_field_calibration_frame;
     cv::Mat m_dead_pixel_mask;
     std::vector<cv::Point> m_dead_pixel_list;

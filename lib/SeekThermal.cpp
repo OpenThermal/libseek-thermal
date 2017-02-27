@@ -12,7 +12,7 @@ using namespace LibSeek;
 SeekThermal::SeekThermal() :
     SeekCam(0x289d, 0x0010, m_buffer,
             THERMAL_RAW_HEIGHT, THERMAL_RAW_WIDTH,
-            cv::Rect(0, 1, THERMAL_WIDTH, THERMAL_HEIGHT))
+            cv::Rect(0, 0, THERMAL_RAW_WIDTH, THERMAL_RAW_HEIGHT))
 { }
 
 bool SeekThermal::init_cam()

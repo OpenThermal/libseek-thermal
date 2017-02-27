@@ -133,6 +133,33 @@ bool SeekCam::read(cv::Mat& dst)
     return true;
 }
 
+void SeekCam::convertToGreyScale(cv::Mat& src, cv::Mat& dst)
+{
+    double tmin, tmax, rsize;
+    double rnint = 0;
+    double rnstart = 0;
+    size_t n;
+    size_t num_of_pixels = src.rows * src.cols;
+
+    cv::minMaxLoc(src, &tmin, &tmax);
+    rsize = (tmax - tmin) / 10.0;
+
+    for (n=0; n<10; n++) {
+        double min = tmin + n * rsize;
+        cv::Mat mask;
+        cv::Mat temp;
+
+        rnstart += rnint;
+        cv::inRange(src, cv::Scalar(min), cv::Scalar(min + rsize), mask);
+        /* num_of_pixels_in_range / total_num_of_pixels * 256 */
+        rnint = (cv::countNonZero(mask) << 8) / num_of_pixels;
+
+        temp = ((src - min) * rnint) / rsize + rnstart;
+        temp.copyTo(dst, mask);
+    }
+    dst.convertTo(dst, CV_8UC1);
+}
+
 bool SeekCam::get_frame()
 {
     /* request new frame */
