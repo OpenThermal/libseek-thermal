@@ -66,8 +66,8 @@ protected:
     bool get_frame();
     void print_usb_data(vector<uint8_t>& data);
     void create_dead_pixel_list();
-    void apply_dead_pixel_filter();
-    uint16_t calc_mean_value(cv::Point p, int right_border, int lower_border);
+    void apply_dead_pixel_filter(cv::Mat& src, cv::Mat& dst);
+    uint16_t calc_mean_value(cv::Mat& img, cv::Point p, int right_border, int lower_border);
 
     /*
      *  Variables
@@ -79,7 +79,6 @@ protected:
     uint16_t* m_raw_data;
     size_t m_raw_data_size;
     cv::Mat m_raw_frame;
-    cv::Mat m_frame;
     cv::Mat m_flat_field_calibration_frame;
     cv::Mat m_dead_pixel_mask;
     std::vector<cv::Point> m_dead_pixel_list;

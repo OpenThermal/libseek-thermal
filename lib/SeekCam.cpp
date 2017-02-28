@@ -18,8 +18,7 @@ SeekCam::SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_hei
                 raw_width,
                 CV_16UC1,
                 buffer,
-                cv::Mat::AUTO_STEP),
-    m_frame(roi.height, roi.width, CV_16UC1)
+                cv::Mat::AUTO_STEP)
 {
     /* set ROI to exclude metadata frame regions */
     m_raw_frame = m_raw_frame(roi);
@@ -116,8 +115,8 @@ bool SeekCam::retrieve(cv::Mat& dst)
     m_raw_frame += m_offset;
     m_raw_frame -= m_flat_field_calibration_frame;
     /* filter out dead pixels */
-    apply_dead_pixel_filter();
-    dst = m_frame;
+    apply_dead_pixel_filter(m_raw_frame, dst);
+    /* degradient */
 
     return true;
 }
@@ -172,31 +171,32 @@ void SeekCam::create_dead_pixel_list()
     }
 }
 
-void SeekCam::apply_dead_pixel_filter()
+void SeekCam::apply_dead_pixel_filter(cv::Mat& src, cv::Mat& dst)
 {
     size_t i;
     size_t size = m_dead_pixel_list.size();
-    int right_border = m_frame.cols - 1;
-    int lower_border = m_frame.rows - 1;
+    int right_border = src.cols - 1;
+    int lower_border = src.rows - 1;
 
-    m_frame.setTo(0xffff);                              /* value to identify dead pixels */
-    m_raw_frame.copyTo(m_frame, m_dead_pixel_mask);     /* only copy non dead pixel values */
+    dst.create(src.rows, src.cols, src.type()); /* ensure dst is properly allocated */
+    dst.setTo(0xffff);                          /* value to identify dead pixels */
+    src.copyTo(dst, m_dead_pixel_mask);         /* only copy non dead pixel values */
 
     /* replace dead pixel values (0xffff) with the mean of its non dead surrounding pixels */
     for (i=0; i<size; i++) {
         cv::Point p = m_dead_pixel_list[i];
-        m_frame.at<uint16_t>(p) = calc_mean_value(p, right_border, lower_border);
+        dst.at<uint16_t>(p) = calc_mean_value(dst, p, right_border, lower_border);
     }
 }
 
-uint16_t SeekCam::calc_mean_value(cv::Point p, int right_border, int lower_border)
+uint16_t SeekCam::calc_mean_value(cv::Mat& img, cv::Point p, int right_border, int lower_border)
 {
     uint32_t value = 0, temp;
     uint32_t div = 0;
 
     if (p.x != 0) {
         /* if not on the left border of the image */
-        temp = m_frame.at<uint16_t>(p.y, p.x-1);
+        temp = img.at<uint16_t>(p.y, p.x-1);
         if (temp != 0xffff) {
             value += temp;
             div++;
@@ -204,7 +204,7 @@ uint16_t SeekCam::calc_mean_value(cv::Point p, int right_border, int lower_borde
     }
     if (p.x != right_border) {
         /* if not on the right border of the image */
-        temp = m_frame.at<uint16_t>(p.y, p.x+1);
+        temp = img.at<uint16_t>(p.y, p.x+1);
         if (temp != 0xffff) {
             value += temp;
             div++;
@@ -212,7 +212,7 @@ uint16_t SeekCam::calc_mean_value(cv::Point p, int right_border, int lower_borde
     }
     if (p.y != 0) {
         // upper
-        temp = m_frame.at<uint16_t>(p.y-1, p.x);
+        temp = img.at<uint16_t>(p.y-1, p.x);
         if (temp != 0xffff) {
             value += temp;
             div++;
@@ -220,7 +220,7 @@ uint16_t SeekCam::calc_mean_value(cv::Point p, int right_border, int lower_borde
     }
     if (p.y != lower_border) {
         // lower
-        temp = m_frame.at<uint16_t>(p.y+1, p.x);
+        temp = img.at<uint16_t>(p.y+1, p.x);
         if (temp != 0xffff) {
             value += temp;
             div++;
