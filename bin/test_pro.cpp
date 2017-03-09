@@ -9,14 +9,12 @@
 int main(int argc, char** argv)
 {
     LibSeek::SeekThermalPro seek;
-    cv::Mat frame, grey_frame, flat_field;
+    cv::Mat frame, grey_frame;
 
-    if (!seek.open()) {
+    if (!seek.open(std::string("ffc.png"))) {
         std::cout << "failed to open seek cam" << std::endl;
         return -1;
     }
-
-    flat_field = cv::imread("ffc.png", cv::ImreadModes::IMREAD_UNCHANGED);
 
     while(1) {
         if (!seek.grab()) {
@@ -25,8 +23,6 @@ int main(int argc, char** argv)
         }
 
         seek.retrieve(frame);
-        frame += 0x4000 - flat_field;
-        //seek.convertToGreyScale(frame, grey_frame);
         cv::normalize(frame, grey_frame, 0, 65535, cv::NORM_MINMAX);
         cv::GaussianBlur(grey_frame, grey_frame, cv::Size(7,7), 0);
 

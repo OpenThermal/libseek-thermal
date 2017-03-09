@@ -19,7 +19,10 @@ SeekCam::SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_hei
                 CV_16UC1,
                 buffer,
                 cv::Mat::AUTO_STEP),
-    m_frame(roi.height, roi.width, CV_16UC1)
+    m_frame(roi.height, roi.width, CV_16UC1),
+    m_flat_field_calibration_frame(),
+    m_additional_ffc(),
+    m_dead_pixel_mask()
 {
     /* set ROI to exclude metadata frame regions */
     m_raw_frame = m_raw_frame(roi);
@@ -73,6 +76,27 @@ bool SeekCam::open()
     return false;
 }
 
+bool SeekCam::open(std::string ffc_filename)
+{
+    m_additional_ffc = cv::imread(ffc_filename, cv::ImreadModes::IMREAD_UNCHANGED);
+
+    if (m_additional_ffc.type() != m_frame.type()) {
+        debug("Error: '%s' not found or it has the wrong type: %d\n",
+                ffc_filename.c_str(), m_additional_ffc.type());
+        return false;
+    }
+
+    if (m_additional_ffc.size() != m_frame.size()) {
+        debug("Error: expected '%s' to have size [%d,%d], got [%d,%d]\n",
+                ffc_filename.c_str(),
+                m_frame.cols, m_frame.rows,
+                m_additional_ffc.cols, m_additional_ffc.rows);
+        return false;
+    }
+
+    return open();
+}
+
 void SeekCam::close()
 {
     if (m_dev.isOpened()) {
@@ -113,10 +137,12 @@ bool SeekCam::grab()
 bool SeekCam::retrieve(cv::Mat& dst)
 {
     /* apply flat field calibration */
-    m_raw_frame += m_offset;
-    m_raw_frame -= m_flat_field_calibration_frame;
+    m_raw_frame += m_offset - m_flat_field_calibration_frame;
     /* filter out dead pixels */
     apply_dead_pixel_filter();
+    /* apply additional flat field calibration for degradient */
+    if (!m_additional_ffc.empty())
+        m_frame += m_offset - m_additional_ffc;
     dst = m_frame;
 
     return true;

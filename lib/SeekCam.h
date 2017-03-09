@@ -21,6 +21,17 @@ public:
     bool open();
 
     /*
+     *  Initialize the camera
+     *  ffc_filename:
+     *      Filename for additional flat field calibration and corner
+     *      gradient elimination. If provided and found, the image will
+     *      be subtracted from each retrieved frame. If not, no additional
+     *      flat field calibration will be applied
+     *  Returns true on success
+     */
+    bool open(std::string ffc_filename);
+
+    /*
      *  Returns true when camera is initialized
      */
     bool isOpened();
@@ -86,8 +97,8 @@ protected:
     size_t m_raw_data_size;
     cv::Mat m_raw_frame;
     cv::Mat m_frame;
-    cv::Mat m_grey_frame;
     cv::Mat m_flat_field_calibration_frame;
+    cv::Mat m_additional_ffc;
     cv::Mat m_dead_pixel_mask;
     std::vector<cv::Point> m_dead_pixel_list;
 };
