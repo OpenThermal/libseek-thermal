@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 
         seek.retrieve(frame);
         cv::normalize(frame, grey_frame, 0, 65535, cv::NORM_MINMAX);
-        cv::GaussianBlur(grey_frame, grey_frame, cv::Size(7,7), 0);
+        //cv::GaussianBlur(grey_frame, grey_frame, cv::Size(7,7), 0);
 
         cv::imshow("LWIR", grey_frame);
 
