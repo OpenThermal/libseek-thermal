@@ -7,35 +7,65 @@
 #include "boost/program_options.hpp"
 #include <iostream>
 
+namespace po = boost::program_options;
 
-/* ugly boost option parser that does not seem to have a pretty printer :( */
-static bool parse_command_line_options(int argc, char** argv, int& smoothing, std::string& outfile)
+static po::options_description get_description()
 {
+    po::options_description description;
 
-    namespace po = boost::program_options;
-    po::variables_map map;
+    description.add_options()
+        ("help,h", "Show this help")
+        ("smoothing,s", po::value<int>()->default_value(100), "Number of images to average before creating an output image")
+        ("outfile", po::value<std::string>()->required(), "Name of the output file");
+
+    return description;
+}
+
+static po::variables_map parse_options(int argc, char** argv)
+{
+    po::positional_options_description positional_description;
+    positional_description.add("outfile", -1);
+    po::variables_map variables_map;
+
+    auto description = get_description();
+    po::store(po::command_line_parser(argc, argv)
+                    .options(description)
+                    .positional(positional_description)
+                    .run(), variables_map);
+
+    if (variables_map.count("help") > 0) {
+        return variables_map;
+    }
+
+    po::notify(variables_map);
+    return variables_map;
+}
+
+static void print_help(const char* program_name)
+{
+    std::cout << "Usage: " << program_name << " [options] outputfilename" << std::endl;
+    std::cout << get_description() << std::endl;
+}
+
+static bool process_command_line_options(int argc, char **argv, po::variables_map& options)
+{
     try
     {
-        po::options_description desc("Options");
-        desc.add_options()
-            ("smoothing,s", po::value<int>(&smoothing)->default_value(100))
-            ("outfile", po::value<std::string>(&outfile)->required());
-
-        po::positional_options_description posdescr;
-        posdescr.add("outfile", -1);
-
-        po::store(po::command_line_parser(argc, argv).options(desc).positional(posdescr).run(), map);
-        po::notify(map);
+        options = parse_options(argc, argv);
     }
-    catch (const po::error &ex)
+    catch (po::error &e)
     {
-        /* doing it myself then... */
-        std::cout << "Usage: " << argv[0] << " [OPTIONS] outfile" << std::endl;
-        std::cout << "Options:" << std::endl;
-        std::cout << "\t-s, --smoothing\t number of frames to accumulate to average out the static noise" << std::endl;
-        std::cerr << ex.what() << std::endl;
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        print_help(argv[0]);
         return false;
     }
+
+    if (options.find("help") != options.end())
+    {
+        print_help(argv[0]);
+        return false;
+    }
+
     return true;
 }
 
@@ -44,11 +74,13 @@ int main(int argc, char** argv)
     int i;
     cv::Mat frame_u16, frame, avg_frame;
     LibSeek::SeekThermalPro seek;
-    std::string outfile;
-    int smoothing;
+    po::variables_map options;
 
-    if (!parse_command_line_options(argc, argv, smoothing, outfile))
+    if (!process_command_line_options(argc, argv, options))
         return -1;
+
+    int smoothing = options["smoothing"].as<int>();
+    std::string outfile = options["outfile"].as<std::string>();
 
     if (!seek.open()) {
         std::cout << "failed to open seek cam" << std::endl;
@@ -78,6 +110,5 @@ int main(int argc, char** argv)
     avg_frame.convertTo(frame_u16, CV_16UC1);
 
     cv::imwrite(outfile, frame_u16);
-
     return 0;
 }
