@@ -8,10 +8,10 @@
 
 int main(int argc, char** argv)
 {
-    LibSeek::SeekThermalPro seek;
+    LibSeek::SeekThermalPro seek(std::string("ffc.png"));
     cv::Mat frame, grey_frame;
 
-    if (!seek.open(std::string("ffc.png"))) {
+    if (!seek.open()) {
         std::cout << "failed to open seek cam" << std::endl;
         return -1;
     }

@@ -21,17 +21,6 @@ public:
     bool open();
 
     /*
-     *  Initialize the camera
-     *  ffc_filename:
-     *      Filename for additional flat field calibration and corner
-     *      gradient elimination. If provided and found, the image will
-     *      be subtracted from each retrieved frame. If not, no additional
-     *      flat field calibration will be applied
-     *  Returns true on success
-     */
-    bool open(std::string ffc_filename);
-
-    /*
      *  Returns true when camera is initialized
      */
     bool isOpened();
@@ -51,7 +40,7 @@ public:
      *  Retrieve the last grabbed 14-bit frame
      *  Returns true on success
      */
-    bool retrieve(cv::Mat& dst);
+    void retrieve(cv::Mat& dst);
 
     /*
      *  Convert a 14-bit thermal measurement to an
@@ -72,14 +61,12 @@ public:
 
 protected:
 
-    /*
-     *  Methods
-     */
-    SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_height, size_t raw_width, cv::Rect roi);
+    SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_height, size_t raw_width, cv::Rect roi, std::string ffc_filename);
     ~SeekCam();
 
     virtual bool init_cam() = 0;
     virtual int frame_id() = 0;
+    bool open_cam();
     bool get_frame();
     void print_usb_data(vector<uint8_t>& data);
     void create_dead_pixel_list();
@@ -91,6 +78,7 @@ protected:
      */
     const int m_offset;
 
+    std::string m_ffc_filename;
     bool m_is_opened;
     SeekDevice m_dev;
     uint16_t* m_raw_data;
