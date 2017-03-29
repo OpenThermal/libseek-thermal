@@ -37,10 +37,16 @@ public:
     bool grab();
 
     /*
-     *  Retrieve the last grabbed frame
+     *  Retrieve the last grabbed 14-bit frame
      *  Returns true on success
      */
-    bool retrieve(cv::Mat& dst);
+    void retrieve(cv::Mat& dst);
+
+    /*
+     *  Convert a 14-bit thermal measurement to an
+     *  enhanced 8-bit greyscale image for visual inspection
+     */
+    void convertToGreyScale(cv::Mat& src, cv::Mat& dst);
 
     /*
      *  Read grabs and retrieves a frame
@@ -55,14 +61,12 @@ public:
 
 protected:
 
-    /*
-     *  Methods
-     */
-    SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_height, size_t raw_width, cv::Rect roi);
+    SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_height, size_t raw_width, cv::Rect roi, std::string ffc_filename);
     ~SeekCam();
 
     virtual bool init_cam() = 0;
     virtual int frame_id() = 0;
+    bool open_cam();
     bool get_frame();
     void print_usb_data(vector<uint8_t>& data);
     void create_dead_pixel_list();
@@ -74,12 +78,14 @@ protected:
      */
     const int m_offset;
 
+    std::string m_ffc_filename;
     bool m_is_opened;
     SeekDevice m_dev;
     uint16_t* m_raw_data;
     size_t m_raw_data_size;
     cv::Mat m_raw_frame;
     cv::Mat m_flat_field_calibration_frame;
+    cv::Mat m_additional_ffc;
     cv::Mat m_dead_pixel_mask;
     std::vector<cv::Point> m_dead_pixel_list;
 };

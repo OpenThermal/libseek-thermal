@@ -1,6 +1,6 @@
 CXX=g++
 CC=g++
-LDLIBS+=$(shell pkg-config --libs opencv) -lusb-1.0
+LDLIBS+=$(shell pkg-config --libs opencv) -lusb-1.0 -lboost_program_options
 CXXFLAGS+=-I/usr/include/opencv -I/usr/include/libusb-1.0
 CXXFLAGS+=-Wall -std=c++11
 LDFLAGS+=-lstdc++

@@ -21,12 +21,22 @@ class SeekThermal: public SeekCam
 {
 public:
     SeekThermal();
-
-    uint16_t m_buffer[THERMAL_RAW_SIZE];
+    /*
+     *  ffc_filename:
+     *      Filename for additional flat field calibration and corner
+     *      gradient elimination. If provided and found, the image will
+     *      be subtracted from each retrieved frame. If not, no additional
+     *      flat field calibration will be applied
+     */
+    SeekThermal(std::string ffc_filename);
 
     virtual bool init_cam();
     virtual int frame_id();
     virtual int frame_counter();
+
+private:
+    uint16_t m_buffer[THERMAL_RAW_SIZE];
+
 };
 
 } /* LibSeek */

@@ -8,8 +8,9 @@
 
 using namespace LibSeek;
 
-SeekCam::SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_height, size_t raw_width, cv::Rect roi) :
+SeekCam::SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_height, size_t raw_width, cv::Rect roi, std::string ffc_filename) :
     m_offset(0x4000),
+    m_ffc_filename(ffc_filename),
     m_is_opened(false),
     m_dev(vendor_id, product_id),
     m_raw_data(buffer),
@@ -18,7 +19,10 @@ SeekCam::SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_hei
                 raw_width,
                 CV_16UC1,
                 buffer,
-                cv::Mat::AUTO_STEP)
+                cv::Mat::AUTO_STEP),
+    m_flat_field_calibration_frame(),
+    m_additional_ffc(),
+    m_dead_pixel_mask()
 {
     /* set ROI to exclude metadata frame regions */
     m_raw_frame = m_raw_frame(roi);
@@ -30,6 +34,114 @@ SeekCam::~SeekCam()
 }
 
 bool SeekCam::open()
+{
+    if (m_ffc_filename != std::string()) {
+        m_additional_ffc = cv::imread(m_ffc_filename, cv::ImreadModes::IMREAD_UNCHANGED);
+
+        if (m_additional_ffc.type() != m_raw_frame.type()) {
+            debug("Error: '%s' not found or it has the wrong type: %d\n",
+                    m_ffc_filename.c_str(), m_additional_ffc.type());
+            return false;
+        }
+
+        if (m_additional_ffc.size() != m_raw_frame.size()) {
+            debug("Error: expected '%s' to have size [%d,%d], got [%d,%d]\n",
+                    m_ffc_filename.c_str(),
+                    m_raw_frame.cols, m_raw_frame.rows,
+                    m_additional_ffc.cols, m_additional_ffc.rows);
+            return false;
+        }
+    }
+
+    return open_cam();
+}
+
+void SeekCam::close()
+{
+    if (m_dev.isOpened()) {
+        vector<uint8_t> data = { 0x00, 0x00 };
+        m_dev.request_set(DeviceCommand::SET_OPERATION_MODE, data);
+        m_dev.request_set(DeviceCommand::SET_OPERATION_MODE, data);
+        m_dev.request_set(DeviceCommand::SET_OPERATION_MODE, data);
+    }
+    m_is_opened = false;
+}
+
+bool SeekCam::isOpened()
+{
+    return m_is_opened;
+}
+
+bool SeekCam::grab()
+{
+    int i;
+
+    for (i=0; i<10; i++) {
+        if(!get_frame()) {
+            debug("Error: frame acquisition failed\n");
+            return false;
+        }
+
+        if (frame_id() == 3) {
+            return true;
+
+        } else if (frame_id() == 1) {
+            m_raw_frame.copyTo(m_flat_field_calibration_frame);
+        }
+    }
+
+    return false;
+}
+
+void SeekCam::retrieve(cv::Mat& dst)
+{
+    /* apply flat field calibration */
+    m_raw_frame += m_offset - m_flat_field_calibration_frame;
+    /* filter out dead pixels */
+    apply_dead_pixel_filter(m_raw_frame, dst);
+    /* apply additional flat field calibration for degradient */
+    if (!m_additional_ffc.empty())
+        dst += m_offset - m_additional_ffc;
+}
+
+bool SeekCam::read(cv::Mat& dst)
+{
+    if (!grab())
+        return false;
+
+    retrieve(dst);
+
+    return true;
+}
+
+void SeekCam::convertToGreyScale(cv::Mat& src, cv::Mat& dst)
+{
+    double tmin, tmax, rsize;
+    double rnint = 0;
+    double rnstart = 0;
+    size_t n;
+    size_t num_of_pixels = src.rows * src.cols;
+
+    cv::minMaxLoc(src, &tmin, &tmax);
+    rsize = (tmax - tmin) / 10.0;
+
+    for (n=0; n<10; n++) {
+        double min = tmin + n * rsize;
+        cv::Mat mask;
+        cv::Mat temp;
+
+        rnstart += rnint;
+        cv::inRange(src, cv::Scalar(min), cv::Scalar(min + rsize), mask);
+        /* num_of_pixels_in_range / total_num_of_pixels * 256 */
+        rnint = (cv::countNonZero(mask) << 8) / num_of_pixels;
+
+        temp = ((src - min) * rnint) / rsize + rnstart;
+        temp.copyTo(dst, mask);
+    }
+    dst.convertTo(dst, CV_8UC1);
+}
+
+bool SeekCam::open_cam()
 {
     int i;
 
@@ -70,66 +182,6 @@ bool SeekCam::open()
 
     debug("Error: max init retry count exceeded\n");
     return false;
-}
-
-void SeekCam::close()
-{
-    if (m_dev.isOpened()) {
-        vector<uint8_t> data = { 0x00, 0x00 };
-        m_dev.request_set(DeviceCommand::SET_OPERATION_MODE, data);
-        m_dev.request_set(DeviceCommand::SET_OPERATION_MODE, data);
-        m_dev.request_set(DeviceCommand::SET_OPERATION_MODE, data);
-    }
-    m_is_opened = false;
-}
-
-bool SeekCam::isOpened()
-{
-    return m_is_opened;
-}
-
-bool SeekCam::grab()
-{
-    int i;
-
-    for (i=0; i<10; i++) {
-        if(!get_frame()) {
-            debug("Error: frame acquisition failed\n");
-            return false;
-        }
-
-        if (frame_id() == 3) {
-            return true;
-
-        } else if (frame_id() == 1) {
-            m_raw_frame.copyTo(m_flat_field_calibration_frame);
-        }
-    }
-
-    return false;
-}
-
-bool SeekCam::retrieve(cv::Mat& dst)
-{
-    /* apply flat field calibration */
-    m_raw_frame += m_offset;
-    m_raw_frame -= m_flat_field_calibration_frame;
-    /* filter out dead pixels */
-    apply_dead_pixel_filter(m_raw_frame, dst);
-    /* degradient */
-
-    return true;
-}
-
-bool SeekCam::read(cv::Mat& dst)
-{
-    if (!grab())
-        return false;
-
-    if (!retrieve(dst))
-        return false;
-
-    return true;
 }
 
 bool SeekCam::get_frame()

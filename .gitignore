@@ -3,3 +3,4 @@ tags
 *.a
 bin/test
 bin/test_pro
+bin/create_flat_field
