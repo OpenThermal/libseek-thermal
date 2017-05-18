@@ -4,7 +4,7 @@
  */
 
 #include "SeekCam.h"
-#include "SeekDebug.h"
+#include "logging.h"
 
 using namespace LibSeek;
 
@@ -39,13 +39,13 @@ bool SeekCam::open()
         m_additional_ffc = cv::imread(m_ffc_filename, cv::ImreadModes::IMREAD_UNCHANGED);
 
         if (m_additional_ffc.type() != m_raw_frame.type()) {
-            debug("Error: '%s' not found or it has the wrong type: %d\n",
+            error("Error: '%s' not found or it has the wrong type: %d\n",
                     m_ffc_filename.c_str(), m_additional_ffc.type());
             return false;
         }
 
         if (m_additional_ffc.size() != m_raw_frame.size()) {
-            debug("Error: expected '%s' to have size [%d,%d], got [%d,%d]\n",
+            error("Error: expected '%s' to have size [%d,%d], got [%d,%d]\n",
                     m_ffc_filename.c_str(),
                     m_raw_frame.cols, m_raw_frame.rows,
                     m_additional_ffc.cols, m_additional_ffc.rows);
@@ -78,7 +78,7 @@ bool SeekCam::grab()
 
     for (i=0; i<10; i++) {
         if(!get_frame()) {
-            debug("Error: frame acquisition failed\n");
+            error("Error: frame acquisition failed\n");
             return false;
         }
 
@@ -146,7 +146,7 @@ bool SeekCam::open_cam()
     int i;
 
     if (!m_dev.open()) {
-        debug("Error: open failed\n");
+        error("Error: open failed\n");
         return false;
     }
 
@@ -154,17 +154,17 @@ bool SeekCam::open_cam()
     for (i=0; i<3; i++) {
         /* cam specific configuration */
         if (!init_cam()) {
-            debug("Error: init_cam failed\n");
+            error("Error: init_cam failed\n");
             return false;
         }
 
         if (!get_frame()) {
-            debug("Error: first frame acquisition failed, retry attempt %d\n", i+1);
+            error("Error: first frame acquisition failed, retry attempt %d\n", i+1);
             continue;
         }
 
         if (frame_id() != 4) {
-            debug("Error: expected first frame to have id 4\n");
+            error("Error: expected first frame to have id 4\n");
             return false;
         }
 
@@ -172,7 +172,7 @@ bool SeekCam::open_cam()
         create_dead_pixel_list();
 
         if (!grab()) {
-            debug("Error: first grab failed\n");
+            error("Error: first grab failed\n");
             return false;
         }
 
@@ -180,7 +180,7 @@ bool SeekCam::open_cam()
         return true;
     }
 
-    debug("Error: max init retry count exceeded\n");
+    error("Error: max init retry count exceeded\n");
     return false;
 }
 
