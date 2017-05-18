@@ -5,7 +5,7 @@ addons:
     apt:
         packages:
             - libopencv-dev
-            - libusb-dev
+            - libusb-1.0-0-dev
 
 script:
     - make DEBUG=1
