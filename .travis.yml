@@ -1,0 +1,13 @@
+dist: trusty
+language: c
+
+addons:
+    apt:
+        packages:
+            - libopencv-dev
+            - libusb-dev
+
+script:
+    - make DEBUG=1
+    - make clean
+    - make
