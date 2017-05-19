@@ -36,7 +36,7 @@ SeekCam::~SeekCam()
 bool SeekCam::open()
 {
     if (m_ffc_filename != std::string()) {
-        m_additional_ffc = cv::imread(m_ffc_filename, cv::ImreadModes::IMREAD_UNCHANGED);
+        m_additional_ffc = cv::imread(m_ffc_filename, -1);
 
         if (m_additional_ffc.type() != m_raw_frame.type()) {
             error("Error: '%s' not found or it has the wrong type: %d\n",
