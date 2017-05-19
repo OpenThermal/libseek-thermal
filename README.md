@@ -18,7 +18,11 @@ The added value of this library is the support for the compact pro.
 
 ## Compilation
 
-The library depends on libusb-1.0 and opencv (tested with opencv 3.2).
+Dependencies:
+* libopencv-dev (>= 2.4)
+* libusb-1.0-0-dev
+* libboost-program-options-dev
+
 To compile just type 'make' in the root directory.
 To get debug verbosity, build with 'make DEBUG=1'.
 
