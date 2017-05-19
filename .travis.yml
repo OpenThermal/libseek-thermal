@@ -6,6 +6,7 @@ addons:
         packages:
             - libopencv-dev
             - libusb-1.0-0-dev
+            - libboost-program-options-dev
 
 script:
     - make DEBUG=1

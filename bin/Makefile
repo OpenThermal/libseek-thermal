@@ -1,5 +1,6 @@
 LIBDIR =../lib
 CXXFLAGS += -I$(LIBDIR)
+LDLIBS += -lboost_program_options
 
 all: test_pro test create_flat_field
 
