@@ -8,8 +8,8 @@
 
 int main(int argc, char** argv)
 {
-    LibSeek::SeekThermal seek;
-    cv::Mat frame;
+    LibSeek::SeekThermal seek(argc == 2 ? argv[1] : "");
+    cv::Mat frame, grey_frame;
 
     if (!seek.open()) {
         std::cout << "failed to open seek cam" << std::endl;
@@ -23,9 +23,9 @@ int main(int argc, char** argv)
         }
 
         seek.retrieve(frame);
-        cv::normalize(frame, frame, 0, 65535, cv::NORM_MINMAX);
+        cv::normalize(frame, grey_frame, 0, 65535, cv::NORM_MINMAX);
 
-        cv::imshow("LWIR", frame);
+        cv::imshow("LWIR", grey_frame);
 
         char c = cv::waitKey(10);
         if (c == 's') {

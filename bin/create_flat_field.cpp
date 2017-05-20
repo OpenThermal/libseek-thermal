@@ -15,6 +15,8 @@ static po::options_description get_description()
 
     description.add_options()
         ("help,h", "Show this help")
+        ("cam,c", po::value<std::string>()->default_value(std::string("seekpro")), "Camera type: choises: seekpro|seek"
+                                                                " -> default is 'seekpro'")
         ("smoothing,s", po::value<int>()->default_value(100), "Number of images to average before creating an output image")
         ("outfile", po::value<std::string>()->required(), "Name of the output file");
 
@@ -73,7 +75,9 @@ int main(int argc, char** argv)
 {
     int i;
     cv::Mat frame_u16, frame, avg_frame;
-    LibSeek::SeekThermalPro seek;
+    LibSeek::SeekThermalPro seekpro;
+    LibSeek::SeekThermal seek;
+    LibSeek::SeekCam* cam;
     po::variables_map options;
 
     if (!process_command_line_options(argc, argv, options))
@@ -82,19 +86,24 @@ int main(int argc, char** argv)
     int smoothing = options["smoothing"].as<int>();
     std::string outfile = options["outfile"].as<std::string>();
 
-    if (!seek.open()) {
+    if (options["cam"].as<std::string>() == "seekpro")
+        cam = &seekpro;
+    else
+        cam = &seek;
+
+    if (!cam->open()) {
         std::cout << "failed to open seek cam" << std::endl;
         return -1;
     }
 
     for (i=0; i<smoothing; i++) {
 
-        if (!seek.grab()) {
+        if (!cam->grab()) {
             std::cout << "no more LWIR img" << endl;
             return -1;
         }
 
-        seek.retrieve(frame_u16);
+        cam->retrieve(frame_u16);
         frame_u16.convertTo(frame, CV_32FC1);
 
         if (avg_frame.rows == 0) {
