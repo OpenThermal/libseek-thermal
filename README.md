@@ -16,17 +16,37 @@ The code is based on ideas from the following repo's:
 
 The added value of this library is the support for the compact pro.
 
-## Compilation
+## Build
 
 Dependencies:
 * libopencv-dev (>= 2.4)
 * libusb-1.0-0-dev
 * libboost-program-options-dev
 
-To compile just type 'make' in the root directory.
-To get debug verbosity, build with 'make DEBUG=1'.
+```
+make
+```
 
-## Running code samples
+To get debug verbosity, build with
+
+```
+make DEBUG=1
+```
+
+Install shared library, headers and binaries to the default location
+
+```
+make install
+ldconfig       # update linker runtime bindings
+```
+
+Install to a specific location
+
+```
+make install PREFIX=/my/install/prefix
+```
+
+## Getting USB access
 
 You need to add a udev rule to be able to run the program as non root user:
 
@@ -48,9 +68,35 @@ sudo chmod 666 /dev/bus/usb/00x/00x
 
 with '00x' the usb bus found with the lsusb command
 
-Run the examples:
+## Running example binaries
 
 ```
 ./bin/test      # Thermal Compact
 ./bin/test_pro  # Thermal Compact Pro
+```
+
+Or if you installed the library you can run from any location:
+
+```
+seek_test      # Thermal Compact
+seek_test_pro  # Thermal Compact Pro
+```
+
+To get better image quality, you can optionally apply an additional flat-field calibration.
+This will cancel out the 'white glow' in the corners and additional flat-field noise.
+The disadvantage is that this calibration is temperature sensitive and should only be applied
+when the camera has warmed up.
+
+Procedure for the Seek Thermal compact:
+
+```
+seek_create_flat_field -c seek seek_ffc.png
+seek_test ffc.png
+```
+
+Procedure for the Seek Thermal compact Pro:
+
+```
+seek_create_flat_field -c seekpro seek_ffc.png
+seek_test_pro ffc.png
 ```
