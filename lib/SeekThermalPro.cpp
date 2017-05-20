@@ -4,7 +4,7 @@
  */
 
 #include "SeekThermalPro.h"
-#include "logging.h"
+#include "SeekLogging.h"
 #include <endian.h>
 
 using namespace LibSeek;

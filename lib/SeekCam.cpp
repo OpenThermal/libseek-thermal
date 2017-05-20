@@ -4,7 +4,7 @@
  */
 
 #include "SeekCam.h"
-#include "logging.h"
+#include "SeekLogging.h"
 
 using namespace LibSeek;
 
