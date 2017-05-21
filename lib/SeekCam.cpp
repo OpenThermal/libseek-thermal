@@ -83,9 +83,12 @@ bool SeekCam::grab()
         }
 
         if (frame_id() == 3) {
+            cv::imwrite("frame_id_3.png", m_raw_frame);
+            exit(0);
             return true;
 
         } else if (frame_id() == 1) {
+            cv::imwrite("frame_id_1.png", m_raw_frame);
             m_raw_frame.copyTo(m_flat_field_calibration_frame);
         }
     }
@@ -168,6 +171,7 @@ bool SeekCam::open_cam()
             return false;
         }
 
+        cv::imwrite("frame_id_4.png", m_raw_frame);
         m_raw_frame.convertTo(m_dead_pixel_mask, CV_8UC1);
         create_dead_pixel_list();
 
