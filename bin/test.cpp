@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 
         cv::imshow("LWIR", grey_frame);
 
-        char c = cv::waitKey(10);
+        char c = cv::waitKey(0);
         if (c == 's') {
             cv::waitKey(0);
         }

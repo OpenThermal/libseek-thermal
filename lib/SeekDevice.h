@@ -114,6 +114,7 @@ private:
     int m_product_id;
     int m_timeout;
     bool m_is_opened;
+    int m_counter;
 
     struct libusb_context* m_ctx = NULL;
     struct libusb_device_handle* m_handle = NULL;
