@@ -69,7 +69,8 @@ protected:
     bool open_cam();
     bool get_frame();
     void print_usb_data(vector<uint8_t>& data);
-    void create_dead_pixel_list();
+    void create_dead_pixel_list(cv::Mat frame, cv::Mat& dead_pixel_mask,
+                                            std::vector<cv::Point>& dead_pixel_list);
     void apply_dead_pixel_filter(cv::Mat& src, cv::Mat& dst);
     uint16_t calc_mean_value(cv::Mat& img, cv::Point p, int right_border, int lower_border);
 

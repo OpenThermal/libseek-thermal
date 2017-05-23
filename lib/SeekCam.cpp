@@ -83,12 +83,9 @@ bool SeekCam::grab()
         }
 
         if (frame_id() == 3) {
-            cv::imwrite("frame_id_3.png", m_raw_frame);
-            exit(0);
             return true;
 
         } else if (frame_id() == 1) {
-            cv::imwrite("frame_id_1.png", m_raw_frame);
             m_raw_frame.copyTo(m_flat_field_calibration_frame);
         }
     }
@@ -171,9 +168,7 @@ bool SeekCam::open_cam()
             return false;
         }
 
-        cv::imwrite("frame_id_4.png", m_raw_frame);
-        m_raw_frame.convertTo(m_dead_pixel_mask, CV_8UC1);
-        create_dead_pixel_list();
+        create_dead_pixel_list(m_raw_frame, m_dead_pixel_mask, m_dead_pixel_list);
 
         if (!grab()) {
             error("Error: first grab failed\n");
@@ -206,22 +201,50 @@ bool SeekCam::get_frame()
 
 void SeekCam::print_usb_data(vector<uint8_t>& data)
 {
-    debug("Response: ");
+    std::stringstream ss;
+    std::string out;
+
+    ss << "Response: ";
     for (size_t i = 0; i < data.size(); i++) {
-        debug(" %2x", data[i]);
+        ss << " " << std::hex << data[i];
     }
-    debug("\n");
+    out = ss.str();
+    debug("%s\n", out.c_str());
 }
 
-void SeekCam::create_dead_pixel_list()
+void SeekCam::create_dead_pixel_list(cv::Mat frame, cv::Mat& dead_pixel_mask,
+                                            std::vector<cv::Point>& dead_pixel_list)
 {
     int x, y;
-    m_dead_pixel_list.clear();
+    double max_value;
+    cv::Point hist_max_value;
+    cv::Mat tmp, hist;
+    int channels[] = {0};
+    int histSize[] = {0x4000};
+    float range[] = {0, 0x4000};
+    const float* ranges[] = { range };
 
-    for (y=0; y<m_dead_pixel_mask.rows; y++) {
-        for (x=0; x<m_dead_pixel_mask.cols; x++) {
-            if (m_dead_pixel_mask.at<uint8_t>(y, x) == 0) {
-                m_dead_pixel_list.push_back(cv::Point(x, y));
+    /* calculate optimal threshold to determine what pixels are dead pixels */
+    frame.convertTo(tmp, CV_32FC1);
+    cv::minMaxLoc(tmp, NULL, &max_value);
+    cv::calcHist(&tmp, 1, channels, cv::Mat(), hist, 1, histSize, ranges,
+                        true,       /* the histogram is uniform */
+                        false);
+    hist.at<float>(0, 0) = 0;       /* suppres 0th bin since its usual the highest,
+                                    but we don't want this one */
+    cv::minMaxLoc(hist, NULL, NULL, NULL, &hist_max_value);
+    const double threshold = hist_max_value.y - (max_value - hist_max_value.y);
+
+    /* calculate the dead pixels mask */
+    cv::threshold(tmp, tmp, threshold, 255, cv::THRESH_BINARY);
+    tmp.convertTo(dead_pixel_mask, CV_8UC1);
+
+    /* calculate the dead pixels list */
+    dead_pixel_list.clear();
+    for (y=0; y<dead_pixel_mask.rows; y++) {
+        for (x=0; x<dead_pixel_mask.cols; x++) {
+            if (dead_pixel_mask.at<uint8_t>(y, x) == 0) {
+                dead_pixel_list.push_back(cv::Point(x, y));
             }
         }
     }
