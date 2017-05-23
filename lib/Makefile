@@ -11,6 +11,6 @@ $(LIBSEEK).a: $(LIBOBJ)
 	ar rcs $@ $(LIBOBJ)
 
 clean:
-	rm -rf $(LIBOBJ) $(LIBSEEK).so
+	rm -rf $(LIBOBJ) $(LIBSEEK).so $(LIBSEEK).a
 
 .PHONY: clean

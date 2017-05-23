@@ -27,10 +27,12 @@ bin: lib
 
 install: bin
 	install -d $(PREFIX)/lib
+	install -d $(PREFIX)/lib/pkgconfig
 	install -d $(PREFIX)/include/seek
 	install -d $(PREFIX)/bin
+	install libseek.pc $(PREFIX)/lib/pkgconfig
 	install lib/$(LIBSEEK).so $(PREFIX)/lib
-	install lib/*.h $(PREFIX)/include/seek/
+	install lib/*.h $(PREFIX)/include/seek
 	install bin/test $(PREFIX)/bin/seek_test
 	install bin/test_pro $(PREFIX)/bin/seek_test_pro
 	install bin/create_flat_field $(PREFIX)/bin/seek_create_flat_field
