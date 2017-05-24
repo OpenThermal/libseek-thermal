@@ -72,7 +72,7 @@ protected:
     void create_dead_pixel_list(cv::Mat frame, cv::Mat& dead_pixel_mask,
                                             std::vector<cv::Point>& dead_pixel_list);
     void apply_dead_pixel_filter(cv::Mat& src, cv::Mat& dst);
-    uint16_t calc_mean_value(cv::Mat& img, cv::Point p, int right_border, int lower_border);
+    uint16_t calc_mean_value(cv::Mat& img, cv::Point p, uint32_t dead_pixel_marker);
 
     /*
      *  Variables
