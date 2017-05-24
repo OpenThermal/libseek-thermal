@@ -53,7 +53,7 @@ You need to add a udev rule to be able to run the program as non root user:
 Udev rule:
 
 ```
-SUBSYSTEM=="usb", ATTRS{idVendor}=="289D", ATTRS{idProduct}=="XXXX", MODE="0666", GROUP="users"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="289d", ATTRS{idProduct}=="XXXX", MODE="0666", GROUP="users"
 ```
 
 Replace 'XXXX' with:
