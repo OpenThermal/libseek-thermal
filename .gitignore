@@ -1,5 +1,7 @@
 tags
 *.o
 *.a
+*.so
 bin/test
 bin/test_pro
+bin/create_flat_field
