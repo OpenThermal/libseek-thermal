@@ -2,6 +2,7 @@ tags
 *.o
 *.a
 *.so
+*.pc
 bin/test
 bin/test_pro
 bin/create_flat_field
