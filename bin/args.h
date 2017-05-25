@@ -1,15 +1,15 @@
 /* Copyright (c) 2016 Taylor C. Richberger <taywee@gmx.com>
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
  * deal in the Software without restriction, including without limitation the
  * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
  * sell copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,14 +21,14 @@
 
 // https://github.com/Taywee/args
 
-/** \file args.hxx
+/** \file args.h
  * \brief this single-header lets you use all of the args functionality
  *
  * The important stuff is done inside the args namespace
  */
 
-#ifndef ARGS_HXX
-#define ARGS_HXX
+#ifndef ARGS_H
+#define ARGS_H
 
 #include <algorithm>
 #include <exception>
@@ -955,7 +955,7 @@ namespace args
              */
             void Description(const std::string &description_)
             { this->description = description_; }
-            
+
             /** The description that appears below options
              */
             const std::string &Epilog() const
@@ -1574,7 +1574,7 @@ namespace args
     };
 
     /** An argument-accepting flag class
-     * 
+     *
      * \tparam T the type to extract the argument as
      * \tparam Reader The functor type used to read the argument, taking the name, value, and destination reference with operator(), and returning a bool (if ARGS_NOEXCEPT is defined)
      */
@@ -1617,7 +1617,7 @@ namespace args
     };
 
     /** An argument-accepting flag class that pushes the found values into a list
-     * 
+     *
      * \tparam T the type to extract the argument as
      * \tparam List the list type that houses the values
      * \tparam Reader The functor type used to read the argument, taking the name, value, and destination reference with operator(), and returning a bool (if ARGS_NOEXCEPT is defined)
@@ -1675,7 +1675,7 @@ namespace args
     };
 
     /** A mapping value flag class
-     * 
+     *
      * \tparam K the type to extract the argument as
      * \tparam T the type to store the result as
      * \tparam Reader The functor type used to read the argument, taking the name, value, and destination reference with operator(), and returning a bool (if ARGS_NOEXCEPT is defined)
@@ -1738,7 +1738,7 @@ namespace args
     };
 
     /** A mapping value flag list class
-     * 
+     *
      * \tparam K the type to extract the argument as
      * \tparam T the type to store the result as
      * \tparam List the list type that houses the values
@@ -1857,7 +1857,7 @@ namespace args
     };
 
     /** A positional argument class that pushes the found values into a list
-     * 
+     *
      * \tparam T the type to extract the argument as
      * \tparam List the list type that houses the values
      * \tparam Reader The functor type used to read the argument, taking the name, value, and destination reference with operator(), and returning a bool (if ARGS_NOEXCEPT is defined)
@@ -1915,7 +1915,7 @@ namespace args
     };
 
     /** A positional argument mapping class
-     * 
+     *
      * \tparam K the type to extract the argument as
      * \tparam T the type to store the result as
      * \tparam Reader The functor type used to read the argument, taking the name, value, and destination reference with operator(), and returning a bool (if ARGS_NOEXCEPT is defined)
@@ -1980,7 +1980,7 @@ namespace args
     };
 
     /** A positional argument mapping list class
-     * 
+     *
      * \tparam K the type to extract the argument as
      * \tparam T the type to store the result as
      * \tparam List the list type that houses the values

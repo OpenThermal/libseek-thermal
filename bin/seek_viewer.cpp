@@ -9,7 +9,7 @@
 #include <string>
 #include <signal.h>
 #include <memory>
-#include "args.hxx"
+#include "args.h"
 
 using namespace cv;
 using namespace LibSeek;
@@ -22,36 +22,36 @@ void handle_sig(int sig) {
 
 // Function to process a raw (corrected) seek frame
 void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int rotate) {
-        Mat frame_g8, frame_g16; // Transient Mat containers for processing
+    Mat frame_g8, frame_g16; // Transient Mat containers for processing
 
-        normalize(inframe, frame_g16, 0, 65535, NORM_MINMAX);
+    normalize(inframe, frame_g16, 0, 65535, NORM_MINMAX);
 
-        // Convert seek CV_16UC1 to CV_8UC1
-        frame_g8 = frame_g16;
-        frame_g8.convertTo( frame_g8, CV_8UC1, 1.0/256.0 );
-        
-        // Rotate image
-        if (rotate == 90) {
-            transpose(frame_g8, frame_g8);
-            flip(frame_g8, frame_g8, 1);
-        } else if (rotate == 180) {
-            flip(frame_g8, frame_g8, -1);
-        } else if (rotate == 270) {
-            transpose(frame_g8, frame_g8);
-            flip(frame_g8, frame_g8, 0);
-        }
-        
-        // Resize image: http://docs.opencv.org/3.2.0/da/d54/group__imgproc__transform.html#ga5bb5a1fea74ea38e1a5445ca803ff121
-        // Note this is expensive computationally, only do if option set != 1
-        if (scale != 1.0)
-            resize(frame_g8, frame_g8, Size(), scale, scale, INTER_LINEAR);
+    // Convert seek CV_16UC1 to CV_8UC1
+    frame_g8 = frame_g16;
+    frame_g8.convertTo( frame_g8, CV_8UC1, 1.0/256.0 );
 
-        // Apply colormap: http://docs.opencv.org/3.2.0/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
-        if (colormap != -1) {
-            applyColorMap(frame_g8, outframe, colormap);
-        } else {
-            outframe = frame_g8;
-        }
+    // Rotate image
+    if (rotate == 90) {
+        transpose(frame_g8, frame_g8);
+        flip(frame_g8, frame_g8, 1);
+    } else if (rotate == 180) {
+        flip(frame_g8, frame_g8, -1);
+    } else if (rotate == 270) {
+        transpose(frame_g8, frame_g8);
+        flip(frame_g8, frame_g8, 0);
+    }
+
+    // Resize image: http://docs.opencv.org/3.2.0/da/d54/group__imgproc__transform.html#ga5bb5a1fea74ea38e1a5445ca803ff121
+    // Note this is expensive computationally, only do if option set != 1
+    if (scale != 1.0)
+        resize(frame_g8, frame_g8, Size(), scale, scale, INTER_LINEAR);
+
+    // Apply colormap: http://docs.opencv.org/3.2.0/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
+    if (colormap != -1) {
+        applyColorMap(frame_g8, outframe, colormap);
+    } else {
+        outframe = frame_g8;
+    }
 }
 
 int main(int argc, char** argv)
@@ -59,12 +59,11 @@ int main(int argc, char** argv)
     // Setup arguments for parser
     args::ArgumentParser parser("Seek Thermal Viewer");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
-    args::Flag verbose(parser, "verbose", "Verbose", {'v', "verbose"});
-    args::ValueFlag<string> _output(parser, "output", "Output Stream", {'o', "output"});
+    args::ValueFlag<string> _output(parser, "output", "Output Stream - name of the video file to write", {'o', "output"});
     args::ValueFlag<int> _fps(parser, "fps", "Video Output FPS - Kludge factor", {'f', "fps"});
     args::ValueFlag<float> _scale(parser, "scaling", "Output Scaling - multiple of original image", {'s', "scale"});
-    args::ValueFlag<int> _colormap(parser, "colormap", "Color Map", {'c', "colormap"});
-    args::ValueFlag<int> _rotate(parser, "rotate", "Rotation", {'r', "rotate"});
+    args::ValueFlag<int> _colormap(parser, "colormap", "Color Map - number between 0 and 12", {'c', "colormap"});
+    args::ValueFlag<int> _rotate(parser, "rotate", "Rotation - 0, 90, 180 or 270 (default) degrees", {'r', "rotate"});
     args::ValueFlag<string> _camtype(parser, "camtype", "Seek Thermal Camera Model - seek or seekpro", {'t', "camtype"});
 
     // Parse arguments
@@ -115,7 +114,7 @@ int main(int argc, char** argv)
     // Register signals
     signal(SIGINT, handle_sig);
     signal(SIGTERM, handle_sig);
-    
+
     // Setup seek camera
     LibSeek::SeekCam* seek;
     LibSeek::SeekThermalPro seekpro;
@@ -129,7 +128,7 @@ int main(int argc, char** argv)
         cout << "Error accessing camera" << endl;
         return 1;
     }
-    
+
     // Mat containers for seek frames
     Mat seekframe, outframe;
 
@@ -149,10 +148,10 @@ int main(int argc, char** argv)
             cout << "Video stream created, dimension: " << outframe.cols << "x" << outframe.rows << ", fps:" << fps << endl;
         }
     }
-    
+
     // Main loop to retrieve frames from camera and output
     while (true) {
-        
+
         // If signal for interrupt/termination was received, break out of main loop and exit
         if (sigflag || !seek->grab()) {
             if (!seek->grab())
@@ -175,7 +174,5 @@ int main(int argc, char** argv)
         } else {
             writer << outframe;
         }
-
     }
-    
 }
