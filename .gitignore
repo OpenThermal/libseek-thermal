@@ -6,3 +6,4 @@ tags
 bin/test
 bin/test_pro
 bin/create_flat_field
+bin/seek_viewer
