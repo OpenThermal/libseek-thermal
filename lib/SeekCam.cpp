@@ -215,6 +215,8 @@ void SeekCam::print_usb_data(vector<uint8_t>& data)
 void SeekCam::create_dead_pixel_list(cv::Mat frame, cv::Mat& dead_pixel_mask,
                                             std::vector<cv::Point>& dead_pixel_list)
 {
+    int x, y;
+    bool has_unlisted_pixels;
     double max_value;
     cv::Point hist_max_value;
     cv::Mat tmp, hist;
@@ -238,59 +240,30 @@ void SeekCam::create_dead_pixel_list(cv::Mat frame, cv::Mat& dead_pixel_mask,
     cv::threshold(tmp, tmp, threshold, 255, cv::THRESH_BINARY);
     tmp.convertTo(dead_pixel_mask, CV_8UC1);
 
-    /* if a dead pixel only has dead neighbor pixels,
-    we have to make sure we don't start processing this dead pixel first
-    in the filtering stage because we have no clue what its interpolated
-    pixel value should be, unless we interpolate its dead neighbor pixels first.
-    Start looking for a pixel that has at least one non dead neighbor pixel */
-    int i;
-    int cols = dead_pixel_mask.cols;
-    int rows = dead_pixel_mask.rows;
-    int start_pos = 0;
-
-    for (i=0; i<rows*cols; i++) {
-        const size_t x = i % cols;
-        const size_t y = i / cols;
-        if (dead_pixel_mask.at<uint8_t>(y, x) != 0 ||
-            calc_mean_value(dead_pixel_mask, cv::Point(y, x), 0) != 0) {
-                start_pos = i;
-                goto end_loop;  /* break from both loops in one go */
-        }
-    }
-
-end_loop:
-
-    /* build the dead pixel list starting from start_x,start_y until the end */
+    /* build dead pixel list in a certain order to assure that every dead pixel value
+     * gets an estimated value in the filter stage */
+    dead_pixel_mask.convertTo(tmp, CV_16UC1);
     dead_pixel_list.clear();
-    for (i=start_pos; i<rows*cols; i++) {
-        const size_t x = i % cols;
-        const size_t y = i / cols;
-        if (dead_pixel_mask.at<uint8_t>(y, x) == 0) {
-            dead_pixel_list.push_back(cv::Point(x, y));
+    do {
+        has_unlisted_pixels = false;
+
+        for (y=0; y<tmp.rows; y++) {
+            for (x=0; x<tmp.cols; x++) {
+                const cv::Point p(x, y);
+
+                if (tmp.at<uint16_t>(y, x) != 0)
+                    continue;   /* not a dead pixel */
+
+                /* only add pixel to the list if we can estimate its value
+                 * directly from its neighbor pixels */
+                if (calc_mean_value(tmp, p, 0) != 0) {
+                    dead_pixel_list.push_back(p);
+                    tmp.at<uint16_t>(y, x) = 255;
+                } else
+                    has_unlisted_pixels = true;
+            }
         }
-    }
-
-    /* build the dead pixel list starting from start_x,start_y until the start */
-    for (i=start_pos-1; i>=0; i--) {
-        const size_t x = i % cols;
-        const size_t y = i / cols;
-        if (dead_pixel_mask.at<uint8_t>(y, x) == 0) {
-            dead_pixel_list.push_back(cv::Point(x, y));
-        }
-    }
-
-    /* rebuild image from list */
-    cv::Mat img(m_dead_pixel_mask.rows, m_dead_pixel_mask.cols, CV_8UC1);
-    img.setTo(255);
-
-    for (i=0; i<m_dead_pixel_list.size(); i++) {
-        cv::Point p = m_dead_pixel_list[i];
-        img.at<uint8_t>(p.y, p.x) = 0;
-    }
-
-    cv::imshow("dead_pixels", img);
-    cv::waitKey(0);
-
+    } while (has_unlisted_pixels);
 }
 
 void SeekCam::apply_dead_pixel_filter(cv::Mat& src, cv::Mat& dst)
