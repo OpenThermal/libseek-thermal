@@ -1,10 +1,22 @@
 LIBSRC=$(wildcard *.cpp)
 LIBOBJ=$(LIBSRC:.cpp=.o)
+CXXFLAGS += -fPIC
 
-$(LIBSEEK): $(LIBOBJ)
+all: $(LIBSEEK).so $(LIBSEEK).a
+
+$(LIBSEEK).so: $(LIBOBJ)
+	$(CXX) -shared -o $@ $^ $(LDFLAGS) $(LDLIBS)
+
+$(LIBSEEK).a: $(LIBOBJ)
 	ar rcs $@ $(LIBOBJ)
 
-clean:
-	rm -rf $(LIBOBJ) $(LIBSEEK)
+install:
+	install -d $(PREFIX)/lib
+	install -d $(PREFIX)/include/seek
+	install $(LIBSEEK).so $(PREFIX)/lib
+	install *.h $(PREFIX)/include/seek
 
-.PHONY: clean
+clean:
+	rm -rf $(LIBOBJ) $(LIBSEEK).so $(LIBSEEK).a
+
+.PHONY: all install clean

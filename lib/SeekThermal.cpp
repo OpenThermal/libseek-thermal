@@ -4,15 +4,19 @@
  */
 
 #include "SeekThermal.h"
-#include "SeekDebug.h"
+#include "SeekLogging.h"
 #include <endian.h>
 
 using namespace LibSeek;
 
 SeekThermal::SeekThermal() :
+    SeekThermal(std::string())
+{ }
+
+SeekThermal::SeekThermal(std::string ffc_filename) :
     SeekCam(0x289d, 0x0010, m_buffer,
             THERMAL_RAW_HEIGHT, THERMAL_RAW_WIDTH,
-            cv::Rect(0, 1, THERMAL_WIDTH, THERMAL_HEIGHT))
+            cv::Rect(0, 1, THERMAL_WIDTH, THERMAL_HEIGHT), ffc_filename)
 { }
 
 bool SeekThermal::init_cam()

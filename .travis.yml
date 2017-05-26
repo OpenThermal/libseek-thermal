@@ -1,0 +1,14 @@
+dist: trusty
+language: c
+
+addons:
+    apt:
+        packages:
+            - libopencv-dev
+            - libusb-1.0-0-dev
+            - libboost-program-options-dev
+
+script:
+    - make DEBUG=1
+    - make clean
+    - make

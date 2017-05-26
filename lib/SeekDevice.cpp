@@ -4,7 +4,7 @@
  */
 
 #include "SeekDevice.h"
-#include "SeekDebug.h"
+#include "SeekLogging.h"
 #include <endian.h>
 #include <stdio.h>
 
@@ -27,7 +27,7 @@ bool SeekDevice::open()
     int bConfigurationValue;
 
     if (m_handle != NULL) {
-        debug("Error: SeekDevice already opened\n");
+        error("Error: SeekDevice already opened\n");
         return false;
     }
 
@@ -36,7 +36,7 @@ bool SeekDevice::open()
     // Init libusb
     res = libusb_init(&m_ctx);
     if (res < 0) {
-        debug("Error: libusb init failed: %s\n", libusb_error_name(res));
+        error("Error: libusb init failed: %s\n", libusb_error_name(res));
         return false;
     }
 
@@ -47,7 +47,7 @@ bool SeekDevice::open()
 
     res = libusb_get_configuration(m_handle, &bConfigurationValue);
     if (res != 0) {
-        debug("Error: libusb get configuration failed: %s\n", libusb_error_name(res));
+        error("Error: libusb get configuration failed: %s\n", libusb_error_name(res));
         close();
         return false;
     }
@@ -56,7 +56,7 @@ bool SeekDevice::open()
     if (bConfigurationValue != 1) {
         res = libusb_set_configuration(m_handle, 1);
         if (res != 0) {
-            debug("Error: libusb set configuration failed: %s\n", libusb_error_name(res));
+            error("Error: libusb set configuration failed: %s\n", libusb_error_name(res));
             close();
             return false;
         }
@@ -64,7 +64,7 @@ bool SeekDevice::open()
 
     res = libusb_claim_interface(m_handle, 0);
     if (res < 0) {
-        debug("Error: failed to claim interface: %s\n", libusb_error_name(res));
+        error("Error: failed to claim interface: %s\n", libusb_error_name(res));
         close();
         return false;
     }
@@ -116,7 +116,7 @@ bool SeekDevice::fetch_frame(uint16_t* buffer, size_t size)
         debug("Asking for %d B of data at %d\n", todo, done);
         res = libusb_bulk_transfer(m_handle, 0x81, &buf[done], todo, &actual_length, m_timeout);
         if (res != 0) {
-            debug("Error: bulk transfer failed: %s\n", libusb_error_name(res));
+            error("Error: bulk transfer failed: %s\n", libusb_error_name(res));
             return false;
         }
         debug("Actual length %d\n", actual_length);
@@ -139,7 +139,7 @@ bool SeekDevice::open_device()
 
     cnt = libusb_get_device_list(m_ctx, &devs);
     if (cnt < 0) {
-        debug("Error: no devices found: %s\n", libusb_error_name(cnt));
+        error("Error: no devices found: %s\n", libusb_error_name(cnt));
         return false;
     }
 
@@ -149,7 +149,7 @@ bool SeekDevice::open_device()
         res = libusb_get_device_descriptor(devs[idx_dev], &desc);
         if (res < 0) {
             libusb_free_device_list(devs, 1);
-            debug("Error: failed to get device descriptor: %s\n", libusb_error_name(res));
+            error("Error: failed to get device descriptor: %s\n", libusb_error_name(res));
             return false;
         }
 
@@ -163,7 +163,7 @@ bool SeekDevice::open_device()
 
     if (!found) {
         libusb_free_device_list(devs, 1);
-        debug("Error: Did not found device %04x:%04x\n", m_vendor_id, m_product_id);
+        error("Error: Did not found device %04x:%04x\n", m_vendor_id, m_product_id);
         return false;
     }
 
@@ -171,7 +171,7 @@ bool SeekDevice::open_device()
     libusb_free_device_list(devs, 1);
 
     if (res < 0) {
-        debug("Error: libusb init failed: %s\n", libusb_error_name(res));
+        error("Error: libusb init failed: %s\n", libusb_error_name(res));
         return false;
     }
 
@@ -198,12 +198,12 @@ bool SeekDevice::control_transfer(bool direction, uint8_t req, uint16_t value, u
     res = libusb_control_transfer(m_handle, bmRequestType, req, value, index, aData, wLength, m_timeout);
 
     if (res < 0) {
-        debug("Error: control transfer failed: %s\n", libusb_error_name(res));
+        error("Error: control transfer failed: %s\n", libusb_error_name(res));
         return false;
     }
 
     if (res != wLength) {
-        debug("Error: control transfer returned %d bytes, expected %d bytes\n", res, wLength);
+        error("Error: control transfer returned %d bytes, expected %d bytes\n", res, wLength);
         return false;
     }
 
