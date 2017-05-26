@@ -2,15 +2,22 @@ LIBDIR =../lib
 CXXFLAGS += -I$(LIBDIR)
 LDLIBS += -lboost_program_options
 
-all: test_pro test create_flat_field seek_viewer
+all: seek_test_pro seek_test seek_viewer seek_create_flat_field
 
-test_pro: test_pro.o $(LIBDIR)/$(LIBSEEK).a
-test: test.o $(LIBDIR)/$(LIBSEEK).a
-create_flat_field: create_flat_field.o $(LIBDIR)/$(LIBSEEK).a
+seek_test_pro: seek_test_pro.o $(LIBDIR)/$(LIBSEEK).a
+seek_test: seek_test.o $(LIBDIR)/$(LIBSEEK).a
 seek_viewer: seek_viewer.o $(LIBDIR)/$(LIBSEEK).a
+seek_create_flat_field: seek_create_flat_field.o $(LIBDIR)/$(LIBSEEK).a
+
+install:
+	install -d $(PREFIX)/bin
+	install seek_test_pro $(PREFIX)/bin/seek_test_pro
+	install seek_test $(PREFIX)/bin/seek_test
+	install seek_viewer $(PREFIX)/bin/seek_viewer
+	install seek_create_flat_field $(PREFIX)/bin/seek_create_flat_field
 
 clean:
-	rm -rf test_pro test create_flat_field seek_viewer *.o
+	rm -rf seek_test_pro seek_test seek_viewer seek_create_flat_field *.o
 
-.PHONY: clean all
+.PHONY: install clean all
 

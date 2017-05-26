@@ -17,7 +17,7 @@ else
     CXXFLAGS += -O2
 endif
 
-export CXXFLAGS LDFLAGS LIBSEEK LDLIBS CXX CC
+export CXXFLAGS LDFLAGS LIBSEEK LDLIBS CXX CC PREFIX
 
 all: bin
 
@@ -28,16 +28,10 @@ bin: lib
 	make -C bin/
 
 install: bin $(LIBSEEK).pc
-	install -d $(PREFIX)/lib
+	make -C bin/ install
+	make -C lib/ install
 	install -d $(PREFIX)/lib/pkgconfig
-	install -d $(PREFIX)/include/seek
-	install -d $(PREFIX)/bin
 	install libseek.pc $(PREFIX)/lib/pkgconfig
-	install lib/$(LIBSEEK).so $(PREFIX)/lib
-	install lib/*.h $(PREFIX)/include/seek
-	install bin/test $(PREFIX)/bin/seek_test
-	install bin/test_pro $(PREFIX)/bin/seek_test_pro
-	install bin/create_flat_field $(PREFIX)/bin/seek_create_flat_field
 
 $(LIBSEEK).pc:
 	echo 'prefix=$(PREFIX)' > $(LIBSEEK).pc

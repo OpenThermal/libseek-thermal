@@ -10,7 +10,13 @@ $(LIBSEEK).so: $(LIBOBJ)
 $(LIBSEEK).a: $(LIBOBJ)
 	ar rcs $@ $(LIBOBJ)
 
+install:
+	install -d $(PREFIX)/lib
+	install -d $(PREFIX)/include/seek
+	install $(LIBSEEK).so $(PREFIX)/lib
+	install *.h $(PREFIX)/include/seek
+
 clean:
 	rm -rf $(LIBOBJ) $(LIBSEEK).so $(LIBSEEK).a
 
-.PHONY: clean
+.PHONY: all install clean
