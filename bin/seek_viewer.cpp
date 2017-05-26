@@ -60,6 +60,7 @@ int main(int argc, char** argv)
     args::ArgumentParser parser("Seek Thermal Viewer");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
     args::ValueFlag<string> _output(parser, "output", "Output Stream - name of the video file to write", {'o', "output"});
+    args::ValueFlag<string> _ffc(parser, "ffc", "Additional Flat Field calibration - provide ffc file", {'c', "calffc"});
     args::ValueFlag<int> _fps(parser, "fps", "Video Output FPS - Kludge factor", {'f', "fps"});
     args::ValueFlag<float> _scale(parser, "scaling", "Output Scaling - multiple of original image", {'s', "scale"});
     args::ValueFlag<int> _colormap(parser, "colormap", "Color Map - number between 0 and 12", {'c', "colormap"});
@@ -117,8 +118,8 @@ int main(int argc, char** argv)
 
     // Setup seek camera
     LibSeek::SeekCam* seek;
-    LibSeek::SeekThermalPro seekpro;
-    LibSeek::SeekThermal seekclassic;
+    LibSeek::SeekThermalPro seekpro(args::get(_ffc));
+    LibSeek::SeekThermal seekclassic(args::get(_ffc));
     if (camtype == "seekpro")
         seek = &seekpro;
     else
