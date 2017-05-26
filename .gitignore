@@ -3,7 +3,7 @@ tags
 *.a
 *.so
 *.pc
-bin/test
-bin/test_pro
-bin/create_flat_field
+bin/seek_test
+bin/seek_test_pro
+bin/seek_create_flat_field
 bin/seek_viewer
