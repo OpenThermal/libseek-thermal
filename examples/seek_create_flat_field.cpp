@@ -99,7 +99,7 @@ int main(int argc, char** argv)
     for (i=0; i<smoothing; i++) {
 
         if (!cam->grab()) {
-            std::cout << "no more LWIR img" << endl;
+            std::cout << "no more LWIR img" << std::endl;
             return -1;
         }
 

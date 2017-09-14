@@ -9,6 +9,7 @@ addons:
             - libboost-program-options-dev
 
 script:
-    - make DEBUG=1
-    - make clean
+    - mkdir -p build
+    - cd build
+    - cmake ..
     - make

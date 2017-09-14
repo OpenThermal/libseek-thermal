@@ -32,26 +32,23 @@ Dependencies:
 * libboost-program-options-dev
 
 ```
+mkdir build
+cd build
+cmake ../
 make
 ```
 
-To get debug verbosity, build with
-
-```
-make DEBUG=1
-```
-
-Install shared library, headers and binaries to the default location
+Install shared library, headers and binaries:
 
 ```
 make install
 ldconfig       # update linker runtime bindings
 ```
 
-Install to a specific location
+For more build options (debug/release, install prefix, opencv install dir, address sanitizer, debug verbosity) run
 
 ```
-make install PREFIX=/my/install/prefix
+cmake-gui ../
 ```
 
 ## Getting USB access
@@ -96,7 +93,12 @@ seek_viewer
 
 After you installed the library you can compile your own programs/libs with:
 ```
-g++ my_program.cpp -o my_program `pkg-config libseek --libs --cflags`
+g++ my_program.cpp -o my_program -lseek `pkg-config opencv --libs`
+```
+
+Using the following include:
+```
+#include <seek/seek.h>
 ```
 
 ## Apply additional flat field calibration

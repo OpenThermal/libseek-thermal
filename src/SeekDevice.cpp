@@ -5,6 +5,7 @@
 
 #include "SeekDevice.h"
 #include "SeekLogging.h"
+#include <libusb.h>
 #include <endian.h>
 #include <stdio.h>
 
@@ -14,7 +15,9 @@ SeekDevice::SeekDevice(int vendor_id, int product_id, int timeout) :
     m_vendor_id(vendor_id),
     m_product_id(product_id),
     m_timeout(timeout),
-    m_is_opened(false) { }
+    m_is_opened(false),
+    m_ctx(nullptr),
+    m_handle(nullptr) { }
 
 SeekDevice::~SeekDevice()
 {
@@ -94,17 +97,17 @@ bool SeekDevice::isOpened()
     return m_is_opened;
 }
 
-bool SeekDevice::request_set(DeviceCommand::Enum command, vector<uint8_t>& data)
+bool SeekDevice::request_set(DeviceCommand::Enum command, std::vector<uint8_t>& data)
 {
     return control_transfer(0, static_cast<char>(command), 0, 0, data);
 }
 
-bool SeekDevice::request_get(DeviceCommand::Enum command, vector<uint8_t>& data)
+bool SeekDevice::request_get(DeviceCommand::Enum command, std::vector<uint8_t>& data)
 {
     return control_transfer(1, static_cast<char>(command), 0, 0, data);
 }
 
-bool SeekDevice::fetch_frame(uint16_t* buffer, size_t size)
+bool SeekDevice::fetch_frame(uint16_t* buffer, std::size_t size)
 {
     int res;
     int actual_length;
@@ -132,7 +135,7 @@ bool SeekDevice::open_device()
 {
     int res;
     int idx_dev;
-    ssize_t cnt;
+    std::size_t cnt;
     bool found = false;
     struct libusb_device **devs;
     struct libusb_device_descriptor desc;
@@ -179,7 +182,7 @@ bool SeekDevice::open_device()
 }
 
 
-bool SeekDevice::control_transfer(bool direction, uint8_t req, uint16_t value, uint16_t index, vector<uint8_t>& data)
+bool SeekDevice::control_transfer(bool direction, uint8_t req, uint16_t value, uint16_t index, std::vector<uint8_t>& data)
 {
     int res;
     uint8_t bmRequestType = (direction ? LIBUSB_ENDPOINT_IN : LIBUSB_ENDPOINT_OUT)
@@ -210,9 +213,9 @@ bool SeekDevice::control_transfer(bool direction, uint8_t req, uint16_t value, u
     return true;
 }
 
-void SeekDevice::correct_endianness(uint16_t* buffer, size_t size)
+void SeekDevice::correct_endianness(uint16_t* buffer, std::size_t size)
 {
-    size_t i;
+    std::size_t i;
 
     for (i=0; i<size; i++) {
         buffer[i] = le16toh(buffer[i]);

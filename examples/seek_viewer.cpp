@@ -27,8 +27,7 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
     normalize(inframe, frame_g16, 0, 65535, NORM_MINMAX);
 
     // Convert seek CV_16UC1 to CV_8UC1
-    frame_g8 = frame_g16;
-    frame_g8.convertTo( frame_g8, CV_8UC1, 1.0/256.0 );
+    frame_g16.convertTo(frame_g8, CV_8UC1, 1.0/256.0 );
 
     // Rotate image
     if (rotate == 90) {
@@ -59,13 +58,13 @@ int main(int argc, char** argv)
     // Setup arguments for parser
     args::ArgumentParser parser("Seek Thermal Viewer");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
-    args::ValueFlag<string> _output(parser, "output", "Output Stream - name of the video file to write", {'o', "output"});
-    args::ValueFlag<string> _ffc(parser, "FFC", "Additional Flat Field calibration - provide ffc file", {'F', "FFC"});
+    args::ValueFlag<std::string> _output(parser, "output", "Output Stream - name of the video file to write", {'o', "output"});
+    args::ValueFlag<std::string> _ffc(parser, "FFC", "Additional Flat Field calibration - provide ffc file", {'F', "FFC"});
     args::ValueFlag<int> _fps(parser, "fps", "Video Output FPS - Kludge factor", {'f', "fps"});
     args::ValueFlag<float> _scale(parser, "scaling", "Output Scaling - multiple of original image", {'s', "scale"});
     args::ValueFlag<int> _colormap(parser, "colormap", "Color Map - number between 0 and 12", {'c', "colormap"});
     args::ValueFlag<int> _rotate(parser, "rotate", "Rotation - 0, 90, 180 or 270 (default) degrees", {'r', "rotate"});
-    args::ValueFlag<string> _camtype(parser, "camtype", "Seek Thermal Camera Model - seek or seekpro", {'t', "camtype"});
+    args::ValueFlag<std::string> _camtype(parser, "camtype", "Seek Thermal Camera Model - seek or seekpro", {'t', "camtype"});
 
     // Parse arguments
     try
@@ -92,10 +91,10 @@ int main(int argc, char** argv)
     float scale = 1.0;
     if (_scale)
         scale = args::get(_scale);
-    string output = "window";
+    std::string output = "window";
     if (_output)
         output = args::get(_output);
-    string camtype = "seek";
+    std::string camtype = "seek";
     if (_camtype)
         camtype = args::get(_camtype);
     // 7fps seems to be about what you get from a seek thermal compact
@@ -126,7 +125,7 @@ int main(int argc, char** argv)
         seek = &seekclassic;
 
     if (!seek->open()) {
-        cout << "Error accessing camera" << endl;
+        std::cout << "Error accessing camera" << std::endl;
         return 1;
     }
 
@@ -135,35 +134,35 @@ int main(int argc, char** argv)
 
     // Retrieve a single frame, resize to requested scaling value and then determine size of matrix
     //  so we can size the VideoWriter stream correctly
-    seek->retrieve(seekframe);
+    if (!seek->read(seekframe)) {
+        std::cout << "Failed to read initial frame from camera, exiting" << std::endl;
+        return -1;
+    }
+
     process_frame(seekframe, outframe, scale, colormap, rotate);
 
     // Create an output object, if output specified then setup the pipeline unless output is set to 'window'
     VideoWriter writer;
     if (output != "window") {
-        writer.open(output, 0, fps, Size(outframe.cols, outframe.rows), true);
+        writer.open(output, 0, fps, Size(outframe.cols, outframe.rows));
         if (!writer.isOpened()) {
-            cerr << "Error can't create video writer" << endl;
+            std::cerr << "Error can't create video writer" << std::endl;
             return 1;
-        } else {
-            cout << "Video stream created, dimension: " << outframe.cols << "x" << outframe.rows << ", fps:" << fps << endl;
         }
+
+        std::cout << "Video stream created, dimension: " << outframe.cols << "x" << outframe.rows << ", fps:" << fps << std::endl;
     }
 
     // Main loop to retrieve frames from camera and output
-    while (true) {
+    while (!sigflag) {
 
         // If signal for interrupt/termination was received, break out of main loop and exit
-        if (sigflag || !seek->grab()) {
-            if (!seek->grab())
-                cout << "No more frames from camera, exiting" << endl;
-            if (sigflag)
-                cout << "Break signal detected, exiting" << endl;
-            break;
+        if (!seek->read(seekframe)) {
+            std::cout << "Failed to read frame from camera, exiting" << std::endl;
+            return -1;
         }
 
         // Retrieve frame from seek and process
-        seek->retrieve(seekframe);
         process_frame(seekframe, outframe, scale, colormap, rotate);
 
         if (output == "window") {
@@ -176,4 +175,7 @@ int main(int argc, char** argv)
             writer << outframe;
         }
     }
+
+    std::cout << "Break signal detected, exiting" << std::endl;
+    return 0;
 }

@@ -59,7 +59,7 @@ bool SeekCam::open()
 void SeekCam::close()
 {
     if (m_dev.isOpened()) {
-        vector<uint8_t> data = { 0x00, 0x00 };
+        std::vector<uint8_t> data = { 0x00, 0x00 };
         m_dev.request_set(DeviceCommand::SET_OPERATION_MODE, data);
         m_dev.request_set(DeviceCommand::SET_OPERATION_MODE, data);
         m_dev.request_set(DeviceCommand::SET_OPERATION_MODE, data);
@@ -188,7 +188,7 @@ bool SeekCam::get_frame()
     /* request new frame */
     uint8_t* s = reinterpret_cast<uint8_t*>(&m_raw_data_size);
 
-    vector<uint8_t> data = { s[0], s[1], s[2], s[3] };
+    std::vector<uint8_t> data = { s[0], s[1], s[2], s[3] };
     if (!m_dev.request_set(DeviceCommand::START_GET_IMAGE_TRANSFER, data))
         return false;
 
@@ -199,7 +199,7 @@ bool SeekCam::get_frame()
     return true;
 }
 
-void SeekCam::print_usb_data(vector<uint8_t>& data)
+void SeekCam::print_usb_data(std::vector<uint8_t>& data)
 {
     std::stringstream ss;
     std::string out;
@@ -227,13 +227,13 @@ void SeekCam::create_dead_pixel_list(cv::Mat frame, cv::Mat& dead_pixel_mask,
 
     /* calculate optimal threshold to determine what pixels are dead pixels */
     frame.convertTo(tmp, CV_32FC1);
-    cv::minMaxLoc(tmp, NULL, &max_value);
+    cv::minMaxLoc(tmp, nullptr, &max_value);
     cv::calcHist(&tmp, 1, channels, cv::Mat(), hist, 1, histSize, ranges,
                         true,       /* the histogram is uniform */
                         false);
     hist.at<float>(0, 0) = 0;       /* suppres 0th bin since its usual the highest,
                                     but we don't want this one */
-    cv::minMaxLoc(hist, NULL, NULL, NULL, &hist_max_value);
+    cv::minMaxLoc(hist, nullptr, nullptr, nullptr, &hist_max_value);
     const double threshold = hist_max_value.y - (max_value - hist_max_value.y);
 
     /* calculate the dead pixels mask */

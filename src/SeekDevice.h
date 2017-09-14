@@ -8,9 +8,10 @@
 
 #include <vector>
 #include <cstdint>
-#include <libusb.h>
 
-using namespace std;
+/* forward struct declarations for libusb stuff */
+struct libusb_context;
+struct libusb_device_handle;
 
 namespace LibSeek {
 
@@ -91,7 +92,7 @@ public:
      *  data:       configuration data to send
      *  Returns true on success
      */
-    bool request_set(DeviceCommand::Enum command, vector<uint8_t>& data);
+    bool request_set(DeviceCommand::Enum command, std::vector<uint8_t>& data);
 
     /*
      *  vendor specific requests for getting data
@@ -99,7 +100,7 @@ public:
      *  data:       will be filled with retrieved configuration data
      *  Returns true on success
      */
-    bool request_get(DeviceCommand::Enum command, vector<uint8_t>& data);
+    bool request_get(DeviceCommand::Enum command, std::vector<uint8_t>& data);
 
     /*
      *  get a raw camera frame previously requested
@@ -107,7 +108,7 @@ public:
      *  size:       number of uint16_t words the buffer can hold
      *  Returns true on success
      */
-    bool fetch_frame(uint16_t* buffer, size_t size);
+    bool fetch_frame(uint16_t* buffer, std::size_t size);
 
 private:
     int m_vendor_id;
@@ -115,12 +116,12 @@ private:
     int m_timeout;
     bool m_is_opened;
 
-    struct libusb_context* m_ctx = NULL;
-    struct libusb_device_handle* m_handle = NULL;
+    struct libusb_context* m_ctx;
+    struct libusb_device_handle* m_handle;
 
     bool open_device();
-    bool control_transfer(bool direction, uint8_t req, uint16_t value, uint16_t index, vector<uint8_t>& data);
-    void correct_endianness(uint16_t* buffer, size_t size);
+    bool control_transfer(bool direction, uint8_t req, uint16_t value, uint16_t index, std::vector<uint8_t>& data);
+    void correct_endianness(uint16_t* buffer, std::size_t size);
 };
 
 } /* LibSeek */

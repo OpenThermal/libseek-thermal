@@ -6,8 +6,8 @@
 #ifndef SEEK_CAM_H
 #define SEEK_CAM_H
 
-#include "SeekDevice.h"
 #include <opencv2/opencv.hpp>
+#include "SeekDevice.h"
 
 namespace LibSeek {
 
@@ -68,7 +68,7 @@ protected:
     virtual int frame_id() = 0;
     bool open_cam();
     bool get_frame();
-    void print_usb_data(vector<uint8_t>& data);
+    void print_usb_data(std::vector<uint8_t>& data);
     void create_dead_pixel_list(cv::Mat frame, cv::Mat& dead_pixel_mask,
                                             std::vector<cv::Point>& dead_pixel_list);
     void apply_dead_pixel_filter(cv::Mat& src, cv::Mat& dst);
