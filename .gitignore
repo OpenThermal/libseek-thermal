@@ -1,9 +1,5 @@
+build
 tags
 *.o
 *.a
 *.so
-*.pc
-bin/seek_test
-bin/seek_test_pro
-bin/seek_create_flat_field
-bin/seek_viewer
