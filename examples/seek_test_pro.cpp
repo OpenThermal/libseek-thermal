@@ -1,5 +1,5 @@
 /*
- *  Test program seek lib
+ *  Test program SEEK Thermal CompactPRO
  *  Author: Maarten Vandersteegen
  */
 #include <opencv2/highgui/highgui.hpp>
