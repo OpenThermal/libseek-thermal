@@ -9,10 +9,11 @@
 libseek-thermal is a user space driver for the SEEK thermal camera series built on libusb and libopencv.
 
 Supported cameras:
-* [Seek Thermal compact](http://www.thermal.com/products/compact/)
-* [Seek Thermal compact pro](http://www.thermal.com/products/compactpro)
+* [Seek Thermal Compact](http://www.thermal.com/products/compact)
+* [Seek Thermal CompactXR](http://www.thermal.com/products/compactxr)
+* [Seek Thermal CompactPRO](http://www.thermal.com/products/compactpro)
 
-Seek Thermal compact pro example:
+Seek Thermal CompactPRO example:
 
 ![Alt text](/doc/colormap_hot.png?raw=true "Colormap seek thermal pro")
 
@@ -21,8 +22,6 @@ Seek Thermal compact pro example:
 The code is based on ideas from the following repo's:
 * https://github.com/BjornVT/Masterproef.git
 * https://github.com/zougloub/libseek
-
-The added value of this library is the support for the compact pro.
 
 ## Build
 
@@ -62,8 +61,8 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="289d", ATTRS{idProduct}=="XXXX", MODE="0666"
 ```
 
 Replace 'XXXX' with:
-* 0010: Seek Thermal Compact
-* 0011: Seek Thermal Compact Pro
+* 0010: Seek Thermal Compact/CompactXR
+* 0011: Seek Thermal CompactPRO
 
 or manually chmod the device file after plugging the usb cable:
 
@@ -76,9 +75,9 @@ with '00x' the usb bus found with the lsusb command
 ## Running example binaries
 
 ```
-./bin/seek_test       # Minimal Thermal Compact example
-./bin/seek_test_pro   # Minimal Thermal Compact Pro example
-./bin/seek_viewer     # Example with more features supporting both cameras, run with --help for command line options
+./examples/seek_test       # Minimal Thermal Compact/CompactXR example
+./examples/seek_test_pro   # Minimal Thermal CompactPRO example
+./examples/seek_viewer     # Example with more features supporting all cameras, run with --help for command line options
 ```
 
 Or if you installed the library you can run from any location:
