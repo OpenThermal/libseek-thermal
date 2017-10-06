@@ -135,7 +135,7 @@ bool SeekDevice::open_device()
 {
     int res;
     int idx_dev;
-    std::size_t cnt;
+    int cnt;
     bool found = false;
     struct libusb_device **devs;
     struct libusb_device_descriptor desc;

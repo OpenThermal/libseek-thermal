@@ -401,6 +401,10 @@ namespace args
 
             virtual std::tuple<std::string, std::string> GetDescription(const std::string &shortPrefix, const std::string &longPrefix, const std::string &shortSeparator, const std::string &longSeparator) const
             {
+                (void)shortPrefix;
+                (void)longPrefix;
+                (void)shortSeparator;
+                (void)longSeparator;
                 std::tuple<std::string, std::string> description;
                 std::get<1>(description) = help;
                 return description;
@@ -435,8 +439,12 @@ namespace args
             NamedBase(const std::string &name_, const std::string &help_) : Base(help_), name(name_), kickout(false) {}
             virtual ~NamedBase() {}
 
-            virtual std::tuple<std::string, std::string> GetDescription(const std::string &shortPrefix, const std::string &longPrefi, const std::string &shortSeparator, const std::string &longSeparator) const override
+            virtual std::tuple<std::string, std::string> GetDescription(const std::string &shortPrefix, const std::string &longPrefix, const std::string &shortSeparator, const std::string &longSeparator) const override
             {
+                (void)shortPrefix;
+                (void)longPrefix;
+                (void)shortSeparator;
+                (void)longSeparator;
                 std::tuple<std::string, std::string> description;
                 std::get<0>(description) = Name();
                 std::get<1>(description) = help;
@@ -517,6 +525,8 @@ namespace args
 
             virtual std::tuple<std::string, std::string> GetDescription(const std::string &shortPrefix, const std::string &longPrefix, const std::string &shortSeparator, const std::string &longSeparator) const override
             {
+                (void)shortSeparator;
+                (void)longSeparator;
                 std::tuple<std::string, std::string> description;
                 const auto flagStrings = matcher.GetFlagStrings(shortPrefix, longPrefix);
                 std::ostringstream flagstream;
@@ -637,11 +647,13 @@ namespace args
 
                 static bool DontCare(const Group &group)
                 {
+                    (void)group;
                     return true;
                 }
 
                 static bool CareTooMuch(const Group &group)
                 {
+                    (void)group;
                     return false;
                 }
 
@@ -1568,6 +1580,7 @@ namespace args
     {
         bool operator()(const std::string &name, const std::string &value, std::string &destination)
         {
+            (void)name;
             destination.assign(value);
             return true;
         }

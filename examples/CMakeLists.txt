@@ -4,17 +4,17 @@ include_directories (
     /usr/include/libusb-1.0
 )
 
-link_libraries(
+link_libraries (
     seek_static
     -lboost_program_options
     ${OpenCV_LIBRARIES}
     -lusb-1.0
 )
 
-add_executable(seek_test seek_test.cpp)
-add_executable(seek_test_pro seek_test_pro.cpp)
-add_executable(seek_viewer seek_viewer.cpp args.h)
-add_executable(seek_create_flat_field seek_create_flat_field.cpp)
+add_executable (seek_test seek_test.cpp)
+add_executable (seek_test_pro seek_test_pro.cpp)
+add_executable (seek_viewer seek_viewer.cpp args.h)
+add_executable (seek_create_flat_field seek_create_flat_field.cpp)
 
 install (TARGETS
     seek_test

@@ -17,6 +17,7 @@ using namespace LibSeek;
 // Setup sig handling
 static volatile sig_atomic_t sigflag = 0;
 void handle_sig(int sig) {
+    (void)sig;
     sigflag = 1;
 }
 
