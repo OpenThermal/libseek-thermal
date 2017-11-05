@@ -26,6 +26,7 @@ The code is based on ideas from the following repo's:
 ## Build
 
 Dependencies:
+* cmake
 * libopencv-dev (>= 2.4)
 * libusb-1.0-0-dev
 * libboost-program-options-dev
