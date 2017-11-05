@@ -50,7 +50,7 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
     if (colormap != -1) {
         applyColorMap(frame_g8, outframe, colormap);
     } else {
-        outframe = frame_g8;
+        cv::cvtColor(frame_g8, outframe, cv::COLOR_GRAY2BGR);
     }
 }
 
