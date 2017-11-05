@@ -30,7 +30,10 @@ Dependencies:
 * libusb-1.0-0-dev
 * libboost-program-options-dev
 
+NOTE: you can just 'apt-get install' all libs above
+
 ```
+cd libseek-thermal
 mkdir build
 cd build
 cmake ../
@@ -40,8 +43,8 @@ make
 Install shared library, headers and binaries:
 
 ```
-make install
-ldconfig       # update linker runtime bindings
+sudo make install
+sudo ldconfig       # update linker runtime bindings
 ```
 
 For more build options (debug/release, install prefix, opencv install dir, address sanitizer, debug verbosity) run
