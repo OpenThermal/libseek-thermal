@@ -92,6 +92,12 @@ seek_test_pro
 seek_viewer
 ```
 
+Some example command lines:
+
+```
+seek_viewer --camtype=seekpro --colormap=2 --rotate=0 --output=seek.avi
+```
+
 ## Linking the library to another program
 
 After you installed the library you can compile your own programs/libs with:
