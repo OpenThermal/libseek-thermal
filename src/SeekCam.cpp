@@ -206,7 +206,7 @@ void SeekCam::print_usb_data(std::vector<uint8_t>& data)
 
     ss << "Response: ";
     for (size_t i = 0; i < data.size(); i++) {
-        ss << " " << std::hex << data[i];
+        ss << " " << std::hex << (int)(unsigned char)data[i];
     }
     out = ss.str();
     debug("%s\n", out.c_str());
