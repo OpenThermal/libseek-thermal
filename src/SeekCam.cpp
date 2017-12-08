@@ -76,7 +76,7 @@ bool SeekCam::grab()
 {
     int i;
 
-    for (i=0; i<10; i++) {
+    for (i=0; i<40; i++) {
         if(!get_frame()) {
             error("Error: frame acquisition failed\n");
             return false;
