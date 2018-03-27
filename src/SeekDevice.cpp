@@ -146,7 +146,7 @@ bool SeekDevice::open_device()
         return false;
     }
 
-    debug("Device Count : %zd\n", cnt);
+    debug("Device Count : %d\n", cnt);
 
     for (idx_dev = 0; idx_dev < cnt; idx_dev++) {
         res = libusb_get_device_descriptor(devs[idx_dev], &desc);

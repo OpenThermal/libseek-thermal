@@ -5,6 +5,7 @@
 
 #include "SeekCam.h"
 #include "SeekLogging.h"
+#include <iomanip>
 
 using namespace LibSeek;
 
@@ -204,9 +205,9 @@ void SeekCam::print_usb_data(std::vector<uint8_t>& data)
     std::stringstream ss;
     std::string out;
 
-    ss << "Response: ";
+    ss << "Response:";
     for (size_t i = 0; i < data.size(); i++) {
-        ss << " " << std::hex << (int)(unsigned char)data[i];
+        ss << " " << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(data[i]);
     }
     out = ss.str();
     debug("%s\n", out.c_str());
