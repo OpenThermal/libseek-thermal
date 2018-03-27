@@ -17,6 +17,10 @@ Seek Thermal CompactPRO example:
 
 ![Alt text](/doc/colormap_hot.png?raw=true "Colormap seek thermal pro")
 
+
+**NOTE: The library does not support absolute temperature readings since we don't know how. Any pull requests to fix this are welcome!**
+
+
 ## Credits
 
 The code is based on ideas from the following repo's:
