@@ -21,9 +21,29 @@ void handle_sig(int sig) {
     sigflag = 1;
 }
 
+int temp_from_raw(int x) {
+    // Known measurements (SeekPro):
+    // 0C => 273K => 13500 raw (ice)
+    // 19C => 292K => 14396 raw (my room temperature)
+    // 36C => 309K => 16136 raw (my body temp, more or less)
+    // 100C => 373K => 20300 raw (freshely boiled water)
+    // 330C => 603K => 32768 raw (known upper limit, full 15 bits - 2^15)
+    //
+    // All values above perfectly demonstrate linear tendency in Excel.
+    // Constants below are taken from linear trend line in Excel.
+    // -273 is translation of Kelvin to Celsius
+    return (int) (0.0171156038 * x + 37) - 273;
+}
+
 // Function to process a raw (corrected) seek frame
 void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int rotate) {
     Mat frame_g8, frame_g16; // Transient Mat containers for processing
+
+    // from https://stackoverflow.com/questions/12521874/how-to-compute-maximum-pixel-value-of-mat-in-opencv
+    // values before normalize is Kelvins, represented somehow
+    double min, max;
+    minMaxIdx(inframe, &min, &max);
+    printf("min: %d [%f], max: %d [%f]\n", temp_from_raw(min), min, temp_from_raw(max), max);
 
     normalize(inframe, frame_g16, 0, 65535, NORM_MINMAX);
 
@@ -52,6 +72,21 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
     } else {
         cv::cvtColor(frame_g8, outframe, cv::COLOR_GRAY2BGR);
     }
+
+    // TODO: extend image with gradient and put numbers onto this gradient
+    // TODO: have option to display max/min at their corresponding image coordinates
+    // sorry, I'm not C++ developer
+    char txt [50];
+    sprintf(txt, "%d..%d", temp_from_raw(min), temp_from_raw(max));
+    putText(outframe,
+                txt,
+                Point(50,50), // Coordinates
+                FONT_HERSHEY_COMPLEX_SMALL, // Font
+                1.0, // Scale. 2.0 = 2x bigger
+                Scalar(196,196,196), // Color
+                1, // Thickness
+                CV_AA); // Anti-alias
+
 }
 
 int main(int argc, char** argv)
@@ -100,7 +135,7 @@ int main(int argc, char** argv)
         camtype = args::get(_camtype);
     // 7fps seems to be about what you get from a seek thermal compact
     // Note: fps doesn't influence how often frames are processed, just the VideoWriter interpolation
-    int fps = 7;
+    int fps = 9; // from APK of Seek app I saw that they support 9hz, works fine for my SeekPro
     if (_fps)
         fps = args::get(_fps);
     // Colormap int corresponding to enum: http://docs.opencv.org/3.2.0/d3/d50/group__imgproc__colormap.html
