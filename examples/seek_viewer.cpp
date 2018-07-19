@@ -22,17 +22,11 @@ void handle_sig(int sig) {
 }
 
 double temp_from_raw(int x) {
-    // Known measurements (SeekPro):
-    // 0C => 273K => 13500 raw (ice)
-    // 19C => 292K => 14396 raw (my room temperature)
-    // 36C => 309K => 16136 raw (my body temp, more or less)
-    // 100C => 373K => 20300 raw (freshely boiled water)
-    // 330C => 603K => 32768 raw (known upper limit, full 15 bits - 2^15)
-    //
-    // All values above perfectly demonstrate linear tendency in Excel.
     // Constants below are taken from linear trend line in Excel.
     // -273 is translation of Kelvin to Celsius
-    return (double) (0.0171156038 * x + 37) - 273;
+    // 330 is max temperature supported by Seek device
+    // 16384 is full 14 bits value (wild guess)
+    return (double) (330/16384.0 * x) - 273;
 }
 
 void overlay_values(Mat &outframe, Point coord, Scalar color) {
