@@ -59,6 +59,11 @@ public:
      */
     virtual int frame_counter() = 0;
 
+    /*
+     *  Get device onboard temperature sensor value
+     */
+    virtual int device_temp() = 0;
+
 protected:
 
     SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_height, size_t raw_width, cv::Rect roi, std::string ffc_filename);
