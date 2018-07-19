@@ -35,18 +35,19 @@ double temp_from_raw(int x) {
     return (double) (0.0171156038 * x + 37) - 273;
 }
 
-void overlay_values(Mat &outframe, double temp, Point &coord, Scalar color) {
+void overlay_values(Mat &outframe, Point coord, Scalar color) {
     int gap=2;
     int arrLen=7;
-    line(outframe, coord-Point(-arrLen, -arrLen), coord-Point(-gap, -gap), color, 2);
-    line(outframe, coord-Point(arrLen, arrLen), coord-Point(gap, gap), color, 2);
-    line(outframe, coord-Point(-arrLen, arrLen), coord-Point(-gap, gap), color, 2);
-    line(outframe, coord-Point(arrLen, -arrLen), coord-Point(gap, -gap), color, 2);
+    int weight=1;
+    line(outframe, coord-Point(-arrLen, -arrLen), coord-Point(-gap, -gap), color, weight);
+    line(outframe, coord-Point(arrLen, arrLen), coord-Point(gap, gap), color, weight);
+    line(outframe, coord-Point(-arrLen, arrLen), coord-Point(-gap, gap), color, weight);
+    line(outframe, coord-Point(arrLen, -arrLen), coord-Point(gap, -gap), color, weight);
+}
 
-    char txt [6];
+void draw_temp(Mat &outframe, double temp, Point coord, Scalar color) {
+    char txt [64];
     sprintf(txt, "%5.1f", temp);
-    putText(outframe, txt, coord-Point(21, -21), FONT_HERSHEY_COMPLEX_SMALL, 0.75, Scalar(255, 255, 255), 1, CV_AA);
-    putText(outframe, txt, coord-Point(19, -19), FONT_HERSHEY_COMPLEX_SMALL, 0.75, Scalar(0, 0, 0), 1, CV_AA);
     putText(outframe, txt, coord-Point(20, -20), FONT_HERSHEY_COMPLEX_SMALL, 0.75, color, 1, CV_AA);
 }
 
@@ -54,14 +55,16 @@ void overlay_values(Mat &outframe, double temp, Point &coord, Scalar color) {
 void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int rotate, int device_temp) {
     Mat frame_g8_nograd, frame_g16; // Transient Mat containers for processing
 
-    // from https://stackoverflow.com/questions/12521874/how-to-compute-maximum-pixel-value-of-mat-in-opencv
-    // values before normalize is Kelvins, represented somehow
-    double min, max;
+    // get raw max/min/central values
+    double min, max, central;
     minMaxIdx(inframe, &min, &max);
+    Scalar valat=inframe.at<uint16_t>(Point(inframe.cols/2.0, inframe.rows/2.0));
+    central=valat[0];
 
     double mintemp=temp_from_raw(min);
     double maxtemp=temp_from_raw(max);
-    printf("rmin,rmax,devtemp: %d %d %d / min-max: %.1f %.1f\n", (int)min, (int)max, (int)device_temp, mintemp, maxtemp);
+    double centraltemp=temp_from_raw(central);
+    printf("rmin,rmax,central,devtemp: %d %d %d %d / min-max-center: %.1f %.1f %.1f\n", (int)min, (int)max, (int)central, (int)device_temp, mintemp, maxtemp, centraltemp);
 
     normalize(inframe, frame_g16, 0, 65535, NORM_MINMAX);
 
@@ -79,28 +82,25 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
         flip(frame_g8_nograd, frame_g8_nograd, 0);
     }
 
-    Point minp, maxp;
+    Point minp, maxp, centralp;
     minMaxLoc(frame_g8_nograd, NULL, NULL, &minp, &maxp); // doing it here, so we take rotation into account
+    centralp=Point(frame_g8_nograd.cols/2.0, frame_g8_nograd.rows/2.0);
     minp*=scale;
     maxp*=scale;
-
-    // add gradient
-    Mat frame_g8(Size(frame_g8_nograd.cols+10, frame_g8_nograd.rows), CV_8U, Scalar(128));
-    for (int r = 0; r < frame_g8.rows-1; r++)
-    {
-        int color=255.0*r/((float)frame_g8.rows);
-        frame_g8.row(r).setTo(color);
-    }
-    Rect small_sz=Rect(0,0,frame_g8_nograd.cols, frame_g8_nograd.rows);
-    Mat subdst=frame_g8(small_sz);
-    frame_g8_nograd.copyTo(subdst);
+    centralp*=scale;
 
     // Resize image: http://docs.opencv.org/3.2.0/da/d54/group__imgproc__transform.html#ga5bb5a1fea74ea38e1a5445ca803ff121
     // Note this is expensive computationally, only do if option set != 1
     if (scale != 1.0)
-        resize(frame_g8, frame_g8, Size(), scale, scale, INTER_LINEAR);
+        resize(frame_g8_nograd, frame_g8_nograd, Size(), scale, scale, INTER_LINEAR);
 
-
+    // add gradient
+    Mat frame_g8(Size(frame_g8_nograd.cols+20, frame_g8_nograd.rows), CV_8U, Scalar(128));
+    for (int r = 0; r < frame_g8.rows-1; r++)
+    {
+        frame_g8.row(r).setTo(255.0*(frame_g8.rows-r)/((float)frame_g8.rows));
+    }
+    frame_g8_nograd.copyTo(frame_g8(Rect(0,0,frame_g8_nograd.cols, frame_g8_nograd.rows)));
 
     // Apply colormap: http://docs.opencv.org/3.2.0/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
     if (colormap != -1) {
@@ -109,8 +109,30 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
         cv::cvtColor(frame_g8, outframe, cv::COLOR_GRAY2BGR);
     }
 
-    overlay_values(outframe, mintemp, minp, Scalar(255,0,0));
-    overlay_values(outframe, maxtemp, maxp, Scalar(0,0,255));
+    // overlay marks
+    draw_temp(outframe, mintemp, Point(outframe.cols-49, outframe.rows-29), Scalar(255, 255, 255));
+    draw_temp(outframe, mintemp, Point(outframe.cols-51, outframe.rows-31), Scalar(0, 0, 0));
+    draw_temp(outframe, mintemp, Point(outframe.cols-50, outframe.rows-30), Scalar(255, 0, 0));
+
+    draw_temp(outframe, maxtemp, Point(outframe.cols-49, 0), Scalar(255, 255, 255));
+    draw_temp(outframe, maxtemp, Point(outframe.cols-51, 2), Scalar(0, 0, 0));
+    draw_temp(outframe, maxtemp, Point(outframe.cols-50, 1), Scalar(0, 0, 255));
+
+    draw_temp(outframe, centraltemp, centralp+Point(-1, -1), Scalar(255, 255, 255));
+    draw_temp(outframe, centraltemp, centralp+Point(1, 1), Scalar(0, 0, 0));
+    draw_temp(outframe, centraltemp, centralp+Point(0, 0), Scalar(128, 128, 128));
+
+    overlay_values(outframe, centralp+Point(-1,-1), Scalar(0,0,0));
+    overlay_values(outframe, centralp+Point(1,1), Scalar(255,255,255));
+    overlay_values(outframe, centralp, Scalar(128,128,128));
+
+    overlay_values(outframe, minp+Point(-1,-1), Scalar(0,0,0));
+    overlay_values(outframe, minp+Point(1,1), Scalar(255,255,255));
+    overlay_values(outframe, minp, Scalar(255,0,0));
+
+    overlay_values(outframe, maxp+Point(-1,-1), Scalar(0,0,0));
+    overlay_values(outframe, maxp+Point(1,1), Scalar(255,255,255));
+    overlay_values(outframe, maxp, Scalar(0,0,255));
 }
 
 int main(int argc, char** argv)
@@ -159,10 +181,7 @@ int main(int argc, char** argv)
         camtype = args::get(_camtype);
     // 7fps seems to be about what you get from a seek thermal compact
     // Note: fps doesn't influence how often frames are processed, just the VideoWriter interpolation
-    int fps = 9; // from APK of Seek app I saw that they support 9hz
-    if (camtype == "seekpro") {
-        fps = 15; //  works fine for my SeekPro
-    }
+    int fps = 7;
     if (_fps)
         fps = args::get(_fps);
     // Colormap int corresponding to enum: http://docs.opencv.org/3.2.0/d3/d50/group__imgproc__colormap.html
@@ -205,7 +224,6 @@ int main(int argc, char** argv)
     printf("WxH: %d %d\n", seekframe.cols, seekframe.rows);
 
     process_frame(seekframe, outframe, scale, colormap, rotate, seek->device_temp());
-    printf("WxH': %d %d\n", outframe.cols, outframe.rows);
 
     // Create an output object, if output specified then setup the pipeline unless output is set to 'window'
     VideoWriter writer;
