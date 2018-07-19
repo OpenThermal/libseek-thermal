@@ -21,7 +21,7 @@ void handle_sig(int sig) {
     sigflag = 1;
 }
 
-int temp_from_raw(int x) {
+double temp_from_raw(int x) {
     // Known measurements (SeekPro):
     // 0C => 273K => 13500 raw (ice)
     // 19C => 292K => 14396 raw (my room temperature)
@@ -32,18 +32,36 @@ int temp_from_raw(int x) {
     // All values above perfectly demonstrate linear tendency in Excel.
     // Constants below are taken from linear trend line in Excel.
     // -273 is translation of Kelvin to Celsius
-    return (int) (0.0171156038 * x + 37) - 273;
+    return (double) (0.0171156038 * x + 37) - 273;
+}
+
+void overlay_values(Mat &outframe, double temp, Point &coord, Scalar color) {
+    int gap=2;
+    int arrLen=7;
+    arrowedLine(outframe, coord-Point(-arrLen, -arrLen), coord-Point(-gap, -gap), color, 1.5, LINE_AA, 0, 0.2);
+    arrowedLine(outframe, coord-Point(arrLen, arrLen), coord-Point(gap, gap), color, 1.5, LINE_AA, 0, 0.2);
+    arrowedLine(outframe, coord-Point(-arrLen, arrLen), coord-Point(-gap, gap), color, 1.5, LINE_AA, 0, 0.2);
+    arrowedLine(outframe, coord-Point(arrLen, -arrLen), coord-Point(gap, -gap), color, 1.5, LINE_AA, 0, 0.2);
+
+    char txt [6];
+    sprintf(txt, "%5.1f", temp);
+    putText(outframe, txt, coord-Point(21, -21), FONT_HERSHEY_COMPLEX_SMALL, 0.75, Scalar(255, 255, 255), 1, CV_AA);
+    putText(outframe, txt, coord-Point(19, -19), FONT_HERSHEY_COMPLEX_SMALL, 0.75, Scalar(0, 0, 0), 1, CV_AA);
+    putText(outframe, txt, coord-Point(20, -20), FONT_HERSHEY_COMPLEX_SMALL, 0.75, color, 1, CV_AA);
 }
 
 // Function to process a raw (corrected) seek frame
-void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int rotate) {
+void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int rotate, int device_temp) {
     Mat frame_g8, frame_g16; // Transient Mat containers for processing
 
     // from https://stackoverflow.com/questions/12521874/how-to-compute-maximum-pixel-value-of-mat-in-opencv
     // values before normalize is Kelvins, represented somehow
     double min, max;
     minMaxIdx(inframe, &min, &max);
-    printf("min: %d [%f], max: %d [%f]\n", temp_from_raw(min), min, temp_from_raw(max), max);
+
+    double mintemp=temp_from_raw(min);
+    double maxtemp=temp_from_raw(max);
+    printf("rmin,rmax,devtemp: %d %d %d / min-max: %.1f %.1f\n", (int)min, (int)max, (int)device_temp, mintemp, maxtemp);
 
     normalize(inframe, frame_g16, 0, 65535, NORM_MINMAX);
 
@@ -61,6 +79,11 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
         flip(frame_g8, frame_g8, 0);
     }
 
+    Point minp, maxp;
+    minMaxLoc(frame_g8, NULL, NULL, &minp, &maxp); // doing it here, so we take rotation into account
+    minp*=scale;
+    maxp*=scale;
+
     // Resize image: http://docs.opencv.org/3.2.0/da/d54/group__imgproc__transform.html#ga5bb5a1fea74ea38e1a5445ca803ff121
     // Note this is expensive computationally, only do if option set != 1
     if (scale != 1.0)
@@ -73,20 +96,12 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
         cv::cvtColor(frame_g8, outframe, cv::COLOR_GRAY2BGR);
     }
 
+    overlay_values(outframe, mintemp, minp, Scalar(255,0,0));
+    overlay_values(outframe, maxtemp, maxp, Scalar(0,0,255));
+
     // TODO: extend image with gradient and put numbers onto this gradient
     // TODO: have option to display max/min at their corresponding image coordinates
     // sorry, I'm not C++ developer
-    char txt [50];
-    sprintf(txt, "%d..%d", temp_from_raw(min), temp_from_raw(max));
-    putText(outframe,
-                txt,
-                Point(50,50), // Coordinates
-                FONT_HERSHEY_COMPLEX_SMALL, // Font
-                1.0, // Scale. 2.0 = 2x bigger
-                Scalar(196,196,196), // Color
-                1, // Thickness
-                CV_AA); // Anti-alias
-
 }
 
 int main(int argc, char** argv)
@@ -135,7 +150,10 @@ int main(int argc, char** argv)
         camtype = args::get(_camtype);
     // 7fps seems to be about what you get from a seek thermal compact
     // Note: fps doesn't influence how often frames are processed, just the VideoWriter interpolation
-    int fps = 9; // from APK of Seek app I saw that they support 9hz, works fine for my SeekPro
+    int fps = 9; // from APK of Seek app I saw that they support 9hz
+    if (camtype == "seekpro") {
+        fps = 15; //  works fine for my SeekPro
+    }
     if (_fps)
         fps = args::get(_fps);
     // Colormap int corresponding to enum: http://docs.opencv.org/3.2.0/d3/d50/group__imgproc__colormap.html
@@ -175,7 +193,9 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    process_frame(seekframe, outframe, scale, colormap, rotate);
+    printf("WxH: %d %d\n", seekframe.cols, seekframe.rows);
+
+    process_frame(seekframe, outframe, scale, colormap, rotate, seek->device_temp());
 
     // Create an output object, if output specified then setup the pipeline unless output is set to 'window'
     VideoWriter writer;
@@ -199,7 +219,7 @@ int main(int argc, char** argv)
         }
 
         // Retrieve frame from seek and process
-        process_frame(seekframe, outframe, scale, colormap, rotate);
+        process_frame(seekframe, outframe, scale, colormap, rotate, seek->device_temp());
 
         if (output == "window") {
             imshow("SeekThermal", outframe);
