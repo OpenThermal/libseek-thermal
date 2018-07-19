@@ -38,10 +38,10 @@ double temp_from_raw(int x) {
 void overlay_values(Mat &outframe, double temp, Point &coord, Scalar color) {
     int gap=2;
     int arrLen=7;
-    line(outframe, coord-Point(-arrLen, -arrLen), coord-Point(-gap, -gap), color, 1.5);
-    line(outframe, coord-Point(arrLen, arrLen), coord-Point(gap, gap), color, 1.5);
-    line(outframe, coord-Point(-arrLen, arrLen), coord-Point(-gap, gap), color, 1.5);
-    line(outframe, coord-Point(arrLen, -arrLen), coord-Point(gap, -gap), color, 1.5);
+    line(outframe, coord-Point(-arrLen, -arrLen), coord-Point(-gap, -gap), color, 2);
+    line(outframe, coord-Point(arrLen, arrLen), coord-Point(gap, gap), color, 2);
+    line(outframe, coord-Point(-arrLen, arrLen), coord-Point(-gap, gap), color, 2);
+    line(outframe, coord-Point(arrLen, -arrLen), coord-Point(gap, -gap), color, 2);
 
     char txt [6];
     sprintf(txt, "%5.1f", temp);
@@ -52,7 +52,7 @@ void overlay_values(Mat &outframe, double temp, Point &coord, Scalar color) {
 
 // Function to process a raw (corrected) seek frame
 void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int rotate, int device_temp) {
-    Mat frame_g8, frame_g16; // Transient Mat containers for processing
+    Mat frame_g8_nograd, frame_g16; // Transient Mat containers for processing
 
     // from https://stackoverflow.com/questions/12521874/how-to-compute-maximum-pixel-value-of-mat-in-opencv
     // values before normalize is Kelvins, represented somehow
@@ -66,28 +66,41 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
     normalize(inframe, frame_g16, 0, 65535, NORM_MINMAX);
 
     // Convert seek CV_16UC1 to CV_8UC1
-    frame_g16.convertTo(frame_g8, CV_8UC1, 1.0/256.0 );
+    frame_g16.convertTo(frame_g8_nograd, CV_8UC1, 1.0/256.0 );
 
     // Rotate image
     if (rotate == 90) {
-        transpose(frame_g8, frame_g8);
-        flip(frame_g8, frame_g8, 1);
+        transpose(frame_g8_nograd, frame_g8_nograd);
+        flip(frame_g8_nograd, frame_g8_nograd, 1);
     } else if (rotate == 180) {
-        flip(frame_g8, frame_g8, -1);
+        flip(frame_g8_nograd, frame_g8_nograd, -1);
     } else if (rotate == 270) {
-        transpose(frame_g8, frame_g8);
-        flip(frame_g8, frame_g8, 0);
+        transpose(frame_g8_nograd, frame_g8_nograd);
+        flip(frame_g8_nograd, frame_g8_nograd, 0);
     }
 
     Point minp, maxp;
-    minMaxLoc(frame_g8, NULL, NULL, &minp, &maxp); // doing it here, so we take rotation into account
+    minMaxLoc(frame_g8_nograd, NULL, NULL, &minp, &maxp); // doing it here, so we take rotation into account
     minp*=scale;
     maxp*=scale;
+
+    // add gradient
+    Mat frame_g8(Size(frame_g8_nograd.cols+10, frame_g8_nograd.rows), CV_8U, Scalar(128));
+    for (int r = 0; r < frame_g8.rows-1; r++)
+    {
+        int color=255.0*r/((float)frame_g8.rows);
+        frame_g8.row(r).setTo(color);
+    }
+    Rect small_sz=Rect(0,0,frame_g8_nograd.cols, frame_g8_nograd.rows);
+    Mat subdst=frame_g8(small_sz);
+    frame_g8_nograd.copyTo(subdst);
 
     // Resize image: http://docs.opencv.org/3.2.0/da/d54/group__imgproc__transform.html#ga5bb5a1fea74ea38e1a5445ca803ff121
     // Note this is expensive computationally, only do if option set != 1
     if (scale != 1.0)
         resize(frame_g8, frame_g8, Size(), scale, scale, INTER_LINEAR);
+
+
 
     // Apply colormap: http://docs.opencv.org/3.2.0/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
     if (colormap != -1) {
@@ -98,10 +111,6 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
 
     overlay_values(outframe, mintemp, minp, Scalar(255,0,0));
     overlay_values(outframe, maxtemp, maxp, Scalar(0,0,255));
-
-    // TODO: extend image with gradient and put numbers onto this gradient
-    // TODO: have option to display max/min at their corresponding image coordinates
-    // sorry, I'm not C++ developer
 }
 
 int main(int argc, char** argv)
@@ -196,6 +205,7 @@ int main(int argc, char** argv)
     printf("WxH: %d %d\n", seekframe.cols, seekframe.rows);
 
     process_frame(seekframe, outframe, scale, colormap, rotate, seek->device_temp());
+    printf("WxH': %d %d\n", outframe.cols, outframe.rows);
 
     // Create an output object, if output specified then setup the pipeline unless output is set to 'window'
     VideoWriter writer;
