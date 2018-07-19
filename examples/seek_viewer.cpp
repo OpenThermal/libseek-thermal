@@ -38,10 +38,10 @@ double temp_from_raw(int x) {
 void overlay_values(Mat &outframe, double temp, Point &coord, Scalar color) {
     int gap=2;
     int arrLen=7;
-    line(outframe, coord-Point(-arrLen, -arrLen), coord-Point(-gap, -gap), color, 1.5, LINE_AA);
-    line(outframe, coord-Point(arrLen, arrLen), coord-Point(gap, gap), color, 1.5, LINE_AA);
-    line(outframe, coord-Point(-arrLen, arrLen), coord-Point(-gap, gap), color, 1.5, LINE_AA);
-    line(outframe, coord-Point(arrLen, -arrLen), coord-Point(gap, -gap), color, 1.5, LINE_AA);
+    line(outframe, coord-Point(-arrLen, -arrLen), coord-Point(-gap, -gap), color, 1.5);
+    line(outframe, coord-Point(arrLen, arrLen), coord-Point(gap, gap), color, 1.5);
+    line(outframe, coord-Point(-arrLen, arrLen), coord-Point(-gap, gap), color, 1.5);
+    line(outframe, coord-Point(arrLen, -arrLen), coord-Point(gap, -gap), color, 1.5);
 
     char txt [6];
     sprintf(txt, "%5.1f", temp);
