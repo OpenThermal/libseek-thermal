@@ -145,7 +145,7 @@ int SeekThermalPro::frame_counter()
     return m_raw_data[1];
 }
 
-int SeekThermalPro::device_temp()
+uint16_t SeekThermalPro::device_temp_sensor()
 {
     return m_raw_data[5];
 }

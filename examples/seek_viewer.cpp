@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 #include <signal.h>
+#include <math.h>
 #include <memory>
 #include "args.h"
 
@@ -21,12 +22,25 @@ void handle_sig(int sig) {
     sigflag = 1;
 }
 
-double temp_from_raw(int x) {
+double device_sensor_to_k(double sensor) {
+    // formula from http://aterlux.ru/article/ntcresistor-en
+    double ref_temp = 297.0; // 23C from table
+    double ref_sensor = 6616.0; // ref value from table
+    double beta = 200; // best beta coef we've found
+    double part3 = log(sensor) - log(ref_sensor);
+    double parte = part3 / beta + 1.0 / ref_temp;
+    return 1.0 / parte;
+}
+
+double temp_from_raw(int x, double device_k) {
     // Constants below are taken from linear trend line in Excel.
     // -273 is translation of Kelvin to Celsius
     // 330 is max temperature supported by Seek device
-    // 16384 is full 14 bits value (wild guess)
-    return (double) (330/16384.0 * x) - 273;
+    // 16384 is full 14 bits value, max possible ()
+    double base = x * 330 / 16384.0;
+    double lin_k = -1.5276; // derived from Excel linear model
+    double lin_offset= -470.8979; // same Excel model
+    return base - device_k * lin_k + lin_offset - 273.0;
 }
 
 void overlay_values(Mat &outframe, Point coord, Scalar color) {
@@ -46,7 +60,7 @@ void draw_temp(Mat &outframe, double temp, Point coord, Scalar color) {
 }
 
 // Function to process a raw (corrected) seek frame
-void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int rotate, int device_temp) {
+void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int rotate, int device_temp_sensor) {
     Mat frame_g8_nograd, frame_g16; // Transient Mat containers for processing
 
     // get raw max/min/central values
@@ -55,10 +69,14 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
     Scalar valat=inframe.at<uint16_t>(Point(inframe.cols/2.0, inframe.rows/2.0));
     central=valat[0];
 
-    double mintemp=temp_from_raw(min);
-    double maxtemp=temp_from_raw(max);
-    double centraltemp=temp_from_raw(central);
-    printf("rmin,rmax,central,devtemp: %d %d %d %d / min-max-center: %.1f %.1f %.1f\n", (int)min, (int)max, (int)central, (int)device_temp, mintemp, maxtemp, centraltemp);
+    double device_k=device_sensor_to_k(device_temp_sensor);
+
+    double mintemp=temp_from_raw(min, device_k);
+    double maxtemp=temp_from_raw(max, device_k);
+    double centraltemp=temp_from_raw(central, device_k);
+
+    printf("rmin,rmax,central,devtempsns: %d %d %d %d\t", (int)min, (int)max, (int)central, (int)device_temp_sensor);
+    printf("min-max-center-device: %.1f %.1f %.1f %.1f\n", mintemp, maxtemp, centraltemp, device_k-273.0);
 
     normalize(inframe, frame_g16, 0, 65535, NORM_MINMAX);
 
@@ -217,7 +235,7 @@ int main(int argc, char** argv)
 
     printf("WxH: %d %d\n", seekframe.cols, seekframe.rows);
 
-    process_frame(seekframe, outframe, scale, colormap, rotate, seek->device_temp());
+    process_frame(seekframe, outframe, scale, colormap, rotate, seek->device_temp_sensor());
 
     // Create an output object, if output specified then setup the pipeline unless output is set to 'window'
     VideoWriter writer;
@@ -241,7 +259,7 @@ int main(int argc, char** argv)
         }
 
         // Retrieve frame from seek and process
-        process_frame(seekframe, outframe, scale, colormap, rotate, seek->device_temp());
+        process_frame(seekframe, outframe, scale, colormap, rotate, seek->device_temp_sensor());
 
         if (output == "window") {
             imshow("SeekThermal", outframe);

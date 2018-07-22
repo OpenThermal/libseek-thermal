@@ -33,7 +33,7 @@ public:
     virtual bool init_cam();
     virtual int frame_id();
     virtual int frame_counter();
-    virtual int device_temp();
+    virtual uint16_t device_temp_sensor();
 
 private:
     uint16_t m_buffer[THERMAL_PRO_RAW_SIZE];

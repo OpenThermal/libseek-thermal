@@ -62,7 +62,7 @@ public:
     /*
      *  Get device onboard temperature sensor value
      */
-    virtual int device_temp() = 0;
+    virtual uint16_t device_temp_sensor() = 0;
 
 protected:
 
