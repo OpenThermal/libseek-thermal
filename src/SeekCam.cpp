@@ -184,6 +184,15 @@ bool SeekCam::open_cam()
     return false;
 }
 
+void save_frame_img(cv::Mat &frame, int frameId) {
+    cv::Mat dst;
+    dst.create(frame.rows, frame.cols, frame.type());
+    //normalize(frame, dst, 0, 65535, cv::NORM_MINMAX);
+    char outfile[256];
+    sprintf(outfile, "frame-%d.png", frameId);
+    cv::imwrite(outfile, dst);
+}
+
 bool SeekCam::get_frame()
 {
     /* request new frame */
@@ -196,6 +205,8 @@ bool SeekCam::get_frame()
     /* store frame data */
     if (!m_dev.fetch_frame(m_raw_data, m_raw_data_size))
         return false;
+
+    // save_frame_img(m_raw_frame, frame_id());
 
     return true;
 }
@@ -265,6 +276,7 @@ void SeekCam::create_dead_pixel_list(cv::Mat frame, cv::Mat& dead_pixel_mask,
             }
         }
     } while (has_unlisted_pixels);
+    printf("Found %lu dead pixels\n", dead_pixel_list.size());
 }
 
 void SeekCam::apply_dead_pixel_filter(cv::Mat& src, cv::Mat& dst)
