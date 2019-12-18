@@ -153,7 +153,7 @@ seek_viewer -t seekpro -F seekpro_ffc.png
 ### Color map selecting
 Cycle through all 12 color maps by pressing 'c'. Black and white is not a standard "colormap" but it is preseved at the 0th position, for a total of 13 possible maps.
 
-###Rotating
+### Rotating
 Pressing 'r' will change the orientation (4 possible)
 
 ### Brightness & contrast
