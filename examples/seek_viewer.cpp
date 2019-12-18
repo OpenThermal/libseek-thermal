@@ -49,8 +49,8 @@ frame_g16=(inframe*cont)-bright;
         resize(frame_g8, frame_g8, Size(), scale, scale, INTER_LINEAR);
 
     // Apply colormap: http://docs.opencv.org/3.2.0/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
-    if (colormap != -1) {
-        applyColorMap(frame_g8, outframe, colormap);
+    if (colormap != 0) {
+        applyColorMap(frame_g8, outframe, colormap-1);
     } else {
         cv::cvtColor(frame_g8, outframe, cv::COLOR_GRAY2BGR);
     }
@@ -203,7 +203,15 @@ int main(int argc, char** argv)
 		}else{
 		colormap=0;
 	}
-	}else {
+	}else if(c==114){
+		if(rotate==270){
+			rotate=0;
+		}
+		else{
+			rotate+=90;
+		}
+	}
+	else {
             writer << outframe;
         }
 	}

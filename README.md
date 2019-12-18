@@ -149,3 +149,20 @@ seek_viewer -t seek -F seek_ffc.png
 seek_test_pro seekpro_ffc.png
 seek_viewer -t seekpro -F seekpro_ffc.png
 ```
+## Added functionality
+### Color map selecting
+Cycle through all 12 color maps by pressing 'c'. Black and white is not a standard "colormap" but it is preseved at the 0th position, for a total of 13 possible maps.
+
+###Rotating
+Pressing 'r' will change the orientation (4 possible)
+
+### Brightness & contrast
+By providing the '-n 1' command line switch, brightness and contrast are no longer adjusted dynamically. 
+
+'w'  will increase the contast
+'s'  will decrease the contrast
+'a'  will decrease the brightness
+'d'  will increase the brightness
+
+This function provides quite granular control, but this also means brightness has to be tweaked to match for each adjustment to contrast. 
+It is useful for having the field of vision not suddendly change in appearance completely when a hot or cold object is viewed.
