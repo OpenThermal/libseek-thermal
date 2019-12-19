@@ -210,8 +210,11 @@ int main(int argc, char** argv)
 		else{
 			rotate+=90;
 		}
-	}
-	else {
+	}else if(c==43){
+		scale +=0.05;
+	}else if(c==45){
+		scale -=0.05;
+	}else {
             writer << outframe;
         }
 	}
