@@ -160,9 +160,22 @@ Pressing 'r' will change the orientation (4 possible)
 By providing the '-n 1' command line switch, brightness and contrast are no longer adjusted dynamically. 
 
 'w'  will increase the contast
+
 's'  will decrease the contrast
+
 'a'  will decrease the brightness
+
 'd'  will increase the brightness
 
 This function provides quite granular control, but this also means brightness has to be tweaked to match for each adjustment to contrast. 
 It is useful for having the field of vision not suddendly change in appearance completely when a hot or cold object is viewed.
+
+### Scaling
+One can also adjust the size of the output (scaling value) by pressing + or -.
+Note that in this case, "+" means Shift + "=" and "-" is just the normal "-" key. The Numpad "+" and "-" return different scan codes so don't work at this time.
+
+### Window position
+At least on Ubuntu (will check Debian later) the arrow keys allow moving the window position. Scancodes are different for each platform (supposedly for different renderers even), so this may not work on your environment.
+
+## Feedback
+I've started a thread about this updated version on EEVBlog, please comment for questions / issues: https://www.eevblog.com/forum/thermal-imaging/slightly-updated-libseek-thermal-(keyboard-interface)/

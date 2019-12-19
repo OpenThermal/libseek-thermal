@@ -58,7 +58,8 @@ frame_g16=(inframe*cont)-bright;
 
 int main(int argc, char** argv)
 {
-    // Setup arguments for parser
+	    
+// Setup arguments for parser
     args::ArgumentParser parser("Seek Thermal Viewer");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
     args::ValueFlag<std::string> _output(parser, "output", "Output Stream - name of the video file to write", {'o', "output"});
@@ -72,7 +73,8 @@ int main(int argc, char** argv)
     int colormap=0;
     int brightness=0;
     int normalize=0;
-
+    int x=100;
+    int y=100;	
     // Parse arguments
     try
     {
@@ -185,7 +187,10 @@ int main(int argc, char** argv)
 
         if (output == "window") {
             imshow("SeekThermal", outframe);
-            char c = waitKey(5)&0xFF;
+		namedWindow("SeekThermal");
+		moveWindow("SeekThermal", x,y);
+            int c = waitKeyEx(5);
+		//std::cout << (int)c << std::endl;
             if (c == 112) {
                 waitKey(0);
             }
@@ -193,10 +198,10 @@ int main(int argc, char** argv)
 		normalize++;
 	} else if (c ==115 && _normalize){
 		normalize--;
-	} else if (c == 100 && _normalize){
-		brightness+=5000;
-	}else if (c == 97 && _normalize){
+	} else if (c == 100 && _normalize){  // normally 100
 		brightness-=5000;
+	}else if (c == 97 && _normalize){    //normally 97
+		brightness+=5000;
 	}else if(c == 99){
 		if(colormap<12){
 			colormap++;
@@ -210,10 +215,18 @@ int main(int argc, char** argv)
 		else{
 			rotate+=90;
 		}
-	}else if(c==43){
+	}else if(c==65579){
 		scale +=0.05;
 	}else if(c==45){
 		scale -=0.05;
+	}else if(c==65362){
+		y-=10;
+	}else if(c==65364){
+		y+=10;
+	}else if(c==65363){
+		x+=10;
+	}else if(c==65361){
+		x-=10;
 	}else {
             writer << outframe;
         }
