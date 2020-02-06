@@ -41,8 +41,7 @@ NOTE: you can just 'apt-get install' all libs above
 cd libseek-thermal
 mkdir build
 cd build
-cmake ../
-cd ..
+cmake ..
 make
 ```
 
