@@ -42,6 +42,7 @@ cd libseek-thermal
 mkdir build
 cd build
 cmake ../
+cd ..
 make
 ```
 
