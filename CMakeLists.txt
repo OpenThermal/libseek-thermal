@@ -12,7 +12,11 @@ set (WITH_ADDRESS_SANITIZER false CACHE BOOL "Enable address sanitizer")
 set (WITH_DEBUG_VERBOSITY false CACHE BOOL "Enable verbose stdout messages")
 set (default_build_type "Release")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+
+if (NOT MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
+endif ()
 
 if (WITH_DEBUG_VERBOSITY)
     add_definitions(-DSEEK_DEBUG)
