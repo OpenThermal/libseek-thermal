@@ -36,6 +36,9 @@ macro_log_feature (LIBUSB_FOUND "libusb" "Required to communicate via USB" "http
 find_package (OpenCV REQUIRED)
 macro_log_feature (OPENCV_FOUND "OpenCV" "Required to handle image processing" "https://opencv.org/" TRUE)
 
+if (MSVC)
+	include_directories (${PROJECT_SOURCE_DIR}/win)
+endif ()
 
 add_subdirectory (src)
 add_subdirectory (examples)
