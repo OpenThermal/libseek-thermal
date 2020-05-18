@@ -145,7 +145,11 @@ int main(int argc, char** argv)
     // Create an output object, if output specified then setup the pipeline unless output is set to 'window'
     VideoWriter writer;
     if (output != "window") {
+#if CV_MAJOR_VERSION < 3
         writer.open(output, CV_FOURCC('F', 'M', 'P', '4'), fps, Size(outframe.cols, outframe.rows));
+#else
+        writer.open(output, VideoWriter::fourcc('F', 'M', 'P', '4'), fps, Size(outframe.cols, outframe.rows));
+#endif
         if (!writer.isOpened()) {
             std::cerr << "Error can't create video writer" << std::endl;
             return 1;
