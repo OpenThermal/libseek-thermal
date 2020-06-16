@@ -89,7 +89,7 @@ int main(int argc, char** argv)
         std::cerr << parser;
         return 1;
     }
-    float scale = 1.0;
+    float scale = 1.55;  //scale for 320*240 lcd
     if (_scale)
         scale = args::get(_scale);
     std::string output = "window";
@@ -108,7 +108,7 @@ int main(int argc, char** argv)
     if (_colormap)
         colormap = args::get(_colormap);
     // Rotate default is landscape view to match camera logo/markings
-    int rotate = 270;
+    int rotate = 0;           
     if (_rotate)
         rotate = args::get(_rotate);
 
@@ -167,16 +167,15 @@ int main(int argc, char** argv)
         process_frame(seekframe, outframe, scale, colormap, rotate);
 
         if (output == "window") {
+   namedWindow("SeekThermal",WND_PROP_FULLSCREEN); 
+	setWindowProperty("SeekThermal",WND_PROP_FULLSCREEN,WINDOW_FULLSCREEN); //Fullscreen mode
             imshow("SeekThermal", outframe);
             char c = waitKey(10);
-            if (c == 's') {
-                waitKey(0);
-            }
-        } else {
-            writer << outframe;
-        }
+            if (c == 's') {waitKey(0);}
+ 		else if(c=='q'){break;}}  //exit key "q"
+            		else {writer << outframe;}
     }
 
     std::cout << "Break signal detected, exiting" << std::endl;
     return 0;
-}
+} 
