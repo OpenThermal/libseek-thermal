@@ -99,8 +99,8 @@ seek_viewer
 Some example command lines:
 
 ```
-seek_viewer --camtype=seekpro --colormap=11 --rotate=0                     # view color mapped thermal video
-seek_viewer --camtype=seekpro --colormap=11 --rotate=0 --output=seek.avi   # record color mapped thermal video
+seek_viewer --camtype=seekpro --colormap=11 --rotate=0                                  # view color mapped thermal video
+seek_viewer --camtype=seekpro --colormap=11 --rotate=0 --mode=file --output=seek.avi    # record color mapped thermal video
 ```
 
 ## Linking the library to another program
