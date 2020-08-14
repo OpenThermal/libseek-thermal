@@ -31,12 +31,11 @@ include(CheckIncludeFile)
 
 # In Linux, folks should generally be able to simply fetch the libusb library and
 # development packages from their distros package repository. Windows users will
-# likely want to fetch a binary distribution, hence the Windows-oriented default.
-#
+# likely want to fetch a binary distribution
 # See http://www.libusb.org/wiki/windows_backend#LatestBinarySnapshots
 if(WIN32)
     set(LIBUSB_DIR
-        "C:/Program Files (x86)/libusb-1.0.20"
+        $ENV{LIBUSB_DIR}
         CACHE
         PATH
         "Path to libusb files. (This is generally only needed for Windows users who downloaded binary distributions.)"
