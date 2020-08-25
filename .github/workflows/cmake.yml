@@ -1,14 +1,8 @@
 name: CMake
 on:
+  push:
   workflow_dispatch:
-    inputs:
-      name:
-        description: 'Person to greet'
-        required: true
-        default: 'Mona the Octocat'
-      home:
-        description: 'location'
-        required: false
+  
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
