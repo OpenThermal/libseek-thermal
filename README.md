@@ -1,8 +1,6 @@
 # libseek-thermal
 
-[![Build Status](https://travis-ci.org/maartenvds/libseek-thermal.svg?branch=master)](https://travis-ci.org/maartenvds/libseek-thermal) master
-
-[![Build Status](https://travis-ci.org/maartenvds/libseek-thermal.svg?branch=development)](https://travis-ci.org/maartenvds/libseek-thermal) development
+![CMake](https://github.com/OpenThermal/libseek-thermal/workflows/CMake/badge.svg?branch=master)
 
 ## Description
 
