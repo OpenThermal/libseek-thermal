@@ -28,11 +28,13 @@ void handle_sig(int sig) {
 }
 
 // Function to process a raw (corrected) seek frame
-void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int rotate) {
+void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int rotate, int cont, int bright) {
     Mat frame_g8, frame_g16; // Transient Mat containers for processing
-
+   if(cont == 0){
     normalize(inframe, frame_g16, 0, 65535, NORM_MINMAX);
-
+} else{
+frame_g16=(inframe*cont)-bright;
+}
     // Convert seek CV_16UC1 to CV_8UC1
     frame_g16.convertTo(frame_g8, CV_8UC1, 1.0/256.0 );
 
@@ -53,8 +55,8 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
         resize(frame_g8, frame_g8, Size(), scale, scale, INTER_LINEAR);
 
     // Apply colormap: http://docs.opencv.org/3.2.0/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
-    if (colormap != -1) {
-        applyColorMap(frame_g8, outframe, colormap);
+    if (colormap != 0) {
+        applyColorMap(frame_g8, outframe, colormap-1);
     } else {
         cv::cvtColor(frame_g8, outframe, cv::COLOR_GRAY2BGR);
     }
@@ -94,7 +96,8 @@ int setupv4l2(std::string output, int width,int height){
 
 int main(int argc, char** argv)
 {
-    // Setup arguments for parser
+	    
+// Setup arguments for parser
     args::ArgumentParser parser("Seek Thermal Viewer");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
     args::ValueFlag<std::string> _mode(parser, "mode", "The mode to use - v4l2, window, file", {'m', "mode"});
@@ -105,7 +108,12 @@ int main(int argc, char** argv)
     args::ValueFlag<int> _colormap(parser, "colormap", "Color Map - number between 0 and 12", {'c', "colormap"});
     args::ValueFlag<int> _rotate(parser, "rotate", "Rotation - 0, 90, 180 or 270 (default) degrees", {'r', "rotate"});
     args::ValueFlag<std::string> _camtype(parser, "camtype", "Seek Thermal Camera Model - seek or seekpro", {'t', "camtype"});
-
+    args::ValueFlag<int> _normalize(parser, "normalize", "0 for normal normalization, 1-50 (ish) for custom contrast", {'n',"normalize"});
+    int colormap=0;
+    int brightness=0;
+    int normalize=0;
+    int x=100;
+    int y=100;	
     // Parse arguments
     try
     {
@@ -148,14 +156,25 @@ int main(int argc, char** argv)
         fps = args::get(_fps);
 
     // Colormap int corresponding to enum: http://docs.opencv.org/3.2.0/d3/d50/group__imgproc__colormap.html
-    int colormap = -1;
+   // int colormap = -1;
     if (_colormap)
         colormap = args::get(_colormap);
 
     // Rotate default is landscape view to match camera logo/markings
+    //Constant contrast or auto-adjust
+    if(_normalize){
+	    if(_ffc)  {
+    brightness=620000;
+    normalize=40;
+    } else{
+    brightness=590000;
+    normalize=40;
+    }
+	}
     int rotate = 270;
     if (_rotate)
         rotate = args::get(_rotate);
+  
 
     std::string output = "";
     if (_output)
@@ -199,7 +218,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    process_frame(seekframe, outframe, scale, colormap, rotate);
+    process_frame(seekframe, outframe, scale, colormap, rotate, normalize, brightness);
 
     // Setup video for linux if that output is chosen
     int v4l2 = -1;
@@ -234,7 +253,7 @@ int main(int argc, char** argv)
         }
 
         // Retrieve frame from seek and process
-        process_frame(seekframe, outframe, scale, colormap, rotate);
+        process_frame(seekframe, outframe, scale, colormap, rotate, normalize, brightness);
 
         if (mode == "v4l2") {
             // Second colorspace conversion done here as applyColorMap only produces BGR. Do it in place.
@@ -247,13 +266,50 @@ int main(int argc, char** argv)
             }
         } else if (mode == "window") {
             imshow("SeekThermal", outframe);
-            char c = waitKey(10);
-            if (c == 's') {
+		namedWindow("SeekThermal");
+		moveWindow("SeekThermal", x,y);
+            int c = waitKeyEx(5);
+		//std::cout << (int)c << std::endl;
+            if (c == 112) {
                 waitKey(0);
             }
-        } else {
+         else if  (c ==119 && _normalize){
+		normalize++;
+	} else if (c ==115 && _normalize){
+		normalize--;
+	} else if (c == 100 && _normalize){  // normally 100
+		brightness-=5000;
+	}else if (c == 97 && _normalize){    //normally 97
+		brightness+=5000;
+	}else if(c == 99){
+		if(colormap<12){
+			colormap++;
+		}else{
+		colormap=0;
+	}
+	}else if(c==114){
+		if(rotate==270){
+			rotate=0;
+		}
+		else{
+			rotate+=90;
+		}
+	}else if(c==65579){
+		scale +=0.05;
+	}else if(c==45){
+		scale -=0.05;
+	}else if(c==65362){
+		y-=10;
+	}else if(c==65364){
+		y+=10;
+	}else if(c==65363){
+		x+=10;
+	}else if(c==65361){
+		x-=10;
+	}else {
             writer << outframe;
         }
+	}
     }
 
     std::cout << "Break signal detected, exiting" << std::endl;
