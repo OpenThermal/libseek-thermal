@@ -56,6 +56,28 @@ For more build options (debug/release, install prefix, opencv install dir, addre
 cmake-gui ../
 ```
 
+### Windows
+
+This library and example programs can be built on Windows with multiple versions of Microsoft Visual Studio. This is most readily done with Visual Studio 2015 or newer, as OpenCV and Boost binaries for Windows are available from the official projects, as described below.
+
+libusb is required, and Windows binaries are available from the [offical libusb project](https://libusb.info/).
+* Download the latest binary release (files ending in `.7z`) from [libusb GitHub Releases](https://github.com/libusb/libusb/releases)
+* Extract the archive
+* Set `LIBUSB_DIR` to the extracted directory (e.g., `C:\local\libusb-1.0.23`)
+
+OpenCV is required, and Windows binaries are available from the [official OpenCV project](https://opencv.org/).
+* Download one of the Windows releases from the [OpenCV releases page](https://opencv.org/releases/) (3.x and 4.x work)
+* Run the self-extracting archive
+* Set `OpenCV_DIR` to the build directory containing `OpenCVConfig.cmake` (e.g., `C:\local\opencv-3.4.10\build`)
+
+To enable building of `seek_create_flat_field.exe`, Boost must be found.
+* Install Boost (consider [pre-built binaries on Sourceforge](https://sourceforge.net/projects/boost/files/boost-binaries/))
+* Set `Boost_DIR` to the directory containing `BoostConfig.cmake` (e.g., `C:\local\boost_1_73_0\lib64-msvc-14.1\cmake\Boost-1.73.0`)
+
+Consider setting the `CMAKE_INSTALL_PREFIX` to a location in your build directory. Then after running the INSTALL target, copy the libusb and OpenCV libraries (e.g., `libusb-1.0.dll` and `opencv_world430.dll`) to the `bin\` directory containing `seek_test.exe`.
+
+Before this library or example programs will work, you will need to set the driver for the USB device. The simplest way to do this is to use [Zadig](https://zadig.akeo.ie/). Run Zadig, then select `iAP Interface`, select `libusb-win32`, then click `Install Driver`.
+
 ## Getting USB access
 
 You need to add a udev rule to be able to run the program as non root user:
