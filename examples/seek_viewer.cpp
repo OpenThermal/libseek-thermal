@@ -10,11 +10,15 @@
 #include <signal.h>
 #include <memory>
 #include "args.h"
-#include <linux/videodev2.h>
 #include <sstream>
 #include <fcntl.h>
+
+#ifdef __linux__
+#include <linux/videodev2.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#endif
+
 
 using namespace cv;
 using namespace LibSeek;
@@ -60,8 +64,10 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
     }
 }
 
+
+#ifdef __linux__
 // Function to setup output to a v4l2 device
-int setupv4l2(std::string output, int width,int height){
+int setupv4l2(std::string output, int width,int height) {
     int v4l2 = open(output.c_str(), O_RDWR); 
     if(v4l2 < 0) {
         std::cout << "Error opening v4l2 device: " << strerror(errno) << std::endl;
@@ -91,6 +97,27 @@ int setupv4l2(std::string output, int width,int height){
     std::cout << "Opened v4l2 device" << std::endl;
     return v4l2;
 }
+
+void v4l2Out(int v4l2, Mat& outframe) {
+    // Second colorspace conversion done here as applyColorMap only produces BGR. Do it in place.
+    cvtColor(outframe, outframe, COLOR_BGR2RGB);
+    int framesize = outframe.total() * outframe.elemSize();
+    int written = write(v4l2, outframe.data, framesize);
+    if (written < 0) {
+        std::cout << "Error writing v4l2 device" << std::endl;
+        close(v4l2);
+        exit(1);
+    }
+}
+#else
+int setupv4l2(std::string output, int width, int height) {
+    std::cout << "v4l2 is not supported on this platform" << std::endl;
+    exit(1);
+    return -1; 
+}
+void v4l2Out(int v4l2, Mat& outframe){}
+#endif // __linux__
+
 
 int main(int argc, char** argv)
 {
@@ -206,7 +233,6 @@ int main(int argc, char** argv)
     if (mode == "v4l2") {
         v4l2 = setupv4l2(output, outframe.size().width,outframe.size().height);
     }
-    int frame_size = outframe.total() * outframe.elemSize();
 
     // Create an output object, if mode specified then setup the pipeline unless mode is set to 'window'
     VideoWriter writer;
@@ -237,14 +263,7 @@ int main(int argc, char** argv)
         process_frame(seekframe, outframe, scale, colormap, rotate);
 
         if (mode == "v4l2") {
-            // Second colorspace conversion done here as applyColorMap only produces BGR. Do it in place.
-            cvtColor(outframe, outframe, COLOR_BGR2RGB);
-            int written = write(v4l2, outframe.data, frame_size);
-            if (written < 0) {
-                std::cout << "Error writing v4l2 device"  << std::endl;
-                close(v4l2);
-                return 1;
-            }
+            v4l2Out(v4l2, outframe);
         } else if (mode == "window") {
             imshow("SeekThermal", outframe);
             char c = waitKey(10);
