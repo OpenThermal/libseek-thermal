@@ -19,9 +19,10 @@
 #include <sys/ioctl.h>
 #endif
 
-
 using namespace cv;
 using namespace LibSeek;
+
+const std::string WINDOW_NAME = "SeekThermal";
 
 // Setup sig handling
 static volatile sig_atomic_t sigflag = 0;
@@ -53,8 +54,9 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
 
     // Resize image: http://docs.opencv.org/3.2.0/da/d54/group__imgproc__transform.html#ga5bb5a1fea74ea38e1a5445ca803ff121
     // Note this is expensive computationally, only do if option set != 1
-    if (scale != 1.0)
+    if (scale != 1.0) {
         resize(frame_g8, frame_g8, Size(), scale, scale, INTER_LINEAR);
+    }
 
     // Apply colormap: http://docs.opencv.org/3.2.0/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
     if (colormap != -1) {
@@ -64,10 +66,23 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
     }
 }
 
+void key_handler(char scancode) {
+    switch (scancode) {
+        case 'f': {
+            int windowFlag = getWindowProperty(WINDOW_NAME, WindowPropertyFlags::WND_PROP_FULLSCREEN) == cv::WINDOW_FULLSCREEN ? WINDOW_NORMAL : WINDOW_FULLSCREEN;
+            setWindowProperty(WINDOW_NAME, WindowPropertyFlags::WND_PROP_FULLSCREEN, windowFlag);
+            break;
+        }
+        case 's': {
+            waitKey(0);
+            break;
+        }
+    }
+}
 
 #ifdef __linux__
 // Function to setup output to a v4l2 device
-int setupv4l2(std::string output, int width,int height) {
+int setup_v4l2(std::string output, int width,int height) {
     int v4l2 = open(output.c_str(), O_RDWR); 
     if(v4l2 < 0) {
         std::cout << "Error opening v4l2 device: " << strerror(errno) << std::endl;
@@ -98,7 +113,7 @@ int setupv4l2(std::string output, int width,int height) {
     return v4l2;
 }
 
-void v4l2Out(int v4l2, Mat& outframe) {
+void v4l2_out(int v4l2, Mat& outframe) {
     // Second colorspace conversion done here as applyColorMap only produces BGR. Do it in place.
     cvtColor(outframe, outframe, COLOR_BGR2RGB);
     int framesize = outframe.total() * outframe.elemSize();
@@ -110,17 +125,16 @@ void v4l2Out(int v4l2, Mat& outframe) {
     }
 }
 #else
-int setupv4l2(std::string output, int width, int height) {
+int setup_v4l2(std::string output, int width, int height) {
     std::cout << "v4l2 is not supported on this platform" << std::endl;
     exit(1);
     return -1; 
 }
-void v4l2Out(int v4l2, Mat& outframe){}
+void v4l2_out(int v4l2, Mat& outframe) {}
 #endif // __linux__
 
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     // Setup arguments for parser
     args::ArgumentParser parser("Seek Thermal Viewer");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
@@ -134,23 +148,19 @@ int main(int argc, char** argv)
     args::ValueFlag<std::string> _camtype(parser, "camtype", "Seek Thermal Camera Model - seek or seekpro", {'t', "camtype"});
 
     // Parse arguments
-    try
-    {
+    try {
         parser.ParseCLI(argc, argv);
     }
-    catch (args::Help)
-    {
+    catch (args::Help) {
         std::cout << parser;
         return 0;
     }
-    catch (args::ParseError e)
-    {
+    catch (args::ParseError e) {
         std::cerr << e.what() << std::endl;
         std::cerr << parser;
         return 1;
     }
-    catch (args::ValidationError e)
-    {
+    catch (args::ValidationError e) {
         std::cerr << e.what() << std::endl;
         std::cerr << parser;
         return 1;
@@ -206,10 +216,11 @@ int main(int argc, char** argv)
     LibSeek::SeekCam* seek;
     LibSeek::SeekThermalPro seekpro(args::get(_ffc));
     LibSeek::SeekThermal seekclassic(args::get(_ffc));
-    if (camtype == "seekpro")
+    if (camtype == "seekpro") {
         seek = &seekpro;
-    else
+    } else {
         seek = &seekclassic;
+    }
 
     if (!seek->open()) {
         std::cout << "Error accessing camera" << std::endl;
@@ -231,7 +242,7 @@ int main(int argc, char** argv)
     // Setup video for linux if that output is chosen
     int v4l2 = -1;
     if (mode == "v4l2") {
-        v4l2 = setupv4l2(output, outframe.size().width,outframe.size().height);
+        v4l2 = setup_v4l2(output, outframe.size().width,outframe.size().height);
     }
 
     // Create an output object, if mode specified then setup the pipeline unless mode is set to 'window'
@@ -248,7 +259,12 @@ int main(int argc, char** argv)
         }
 
         std::cout << "Video stream created, dimension: " << outframe.cols << "x" << outframe.rows << ", fps:" << fps << std::endl;
+    } else if (mode == "window") {
+        namedWindow(WINDOW_NAME, cv::WINDOW_NORMAL | cv::WINDOW_KEEPRATIO);
+        setWindowProperty(WINDOW_NAME, WindowPropertyFlags::WND_PROP_ASPECT_RATIO, cv::WINDOW_KEEPRATIO);
+        resizeWindow(WINDOW_NAME, seekframe.cols, seekframe.rows);
     }
+
 
     // Main loop to retrieve frames from camera and write them out
     while (!sigflag) {
@@ -263,16 +279,21 @@ int main(int argc, char** argv)
         process_frame(seekframe, outframe, scale, colormap, rotate);
 
         if (mode == "v4l2") {
-            v4l2Out(v4l2, outframe);
+            v4l2_out(v4l2, outframe);
         } else if (mode == "window") {
-            imshow("SeekThermal", outframe);
+            imshow(WINDOW_NAME, outframe);
             char c = waitKey(10);
-            if (c == 's') {
-                waitKey(0);
+            key_handler(c);
+
+            // If the window is closed by the user all window properties will return -1 and we should terminate
+            if (getWindowProperty(WINDOW_NAME, WindowPropertyFlags::WND_PROP_FULLSCREEN) == -1) {
+                std::cout << "Window closed, exiting" << std::endl;
+                return 0;
             }
         } else {
             writer << outframe;
         }
+
     }
 
     std::cout << "Break signal detected, exiting" << std::endl;
