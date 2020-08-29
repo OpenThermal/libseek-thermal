@@ -260,7 +260,7 @@ int main(int argc, char** argv) {
 
         std::cout << "Video stream created, dimension: " << outframe.cols << "x" << outframe.rows << ", fps:" << fps << std::endl;
     } else if (mode == "window") {
-        namedWindow(WINDOW_NAME, cv::WINDOW_NORMAL | cv::WINDOW_KEEPRATIO);
+        namedWindow(WINDOW_NAME, cv::WINDOW_NORMAL);
         setWindowProperty(WINDOW_NAME, WindowPropertyFlags::WND_PROP_ASPECT_RATIO, cv::WINDOW_KEEPRATIO);
         resizeWindow(WINDOW_NAME, seekframe.cols, seekframe.rows);
     }
