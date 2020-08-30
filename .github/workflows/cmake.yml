@@ -24,7 +24,7 @@ jobs:
       # We'll use this as our working directory for all subsequent commands
       run: |
         cmake -E make_directory ${{runner.workspace}}/build
-        sudo apt-get install libopencv-dev libusb-1.0-0-dev libboost-program-options-dev
+        sudo apt-get install libopencv-dev libusb-1.0-0-dev
 
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable

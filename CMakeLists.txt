@@ -26,10 +26,6 @@ message (STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 include (MacroLogFeature)
 
-find_package (Boost COMPONENTS program_options)
-macro_log_feature (BOOST_FOUND "Boost" "Boost program_options required for seek_create_flat_field (set Boost_DIR)" "https://www.boost.org/" FALSE)
-mark_as_advanced (CLEAR Boost_DIR)
-
 find_package (LibUSB)
 macro_log_feature (LIBUSB_FOUND "libusb" "Required to communicate via USB" "https://libusb.info/" TRUE)
 
