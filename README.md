@@ -1,8 +1,6 @@
 # libseek-thermal
 
-[![Build Status](https://travis-ci.org/maartenvds/libseek-thermal.svg?branch=master)](https://travis-ci.org/maartenvds/libseek-thermal) master
-
-[![Build Status](https://travis-ci.org/maartenvds/libseek-thermal.svg?branch=development)](https://travis-ci.org/maartenvds/libseek-thermal) development
+![CMake](https://github.com/OpenThermal/libseek-thermal/workflows/CMake/badge.svg?branch=master)
 
 ## Description
 
@@ -33,7 +31,6 @@ Dependencies:
 * cmake
 * libopencv-dev (>= 2.4)
 * libusb-1.0-0-dev
-* libboost-program-options-dev
 
 NOTE: you can just 'apt-get install' all libs above
 
@@ -41,7 +38,7 @@ NOTE: you can just 'apt-get install' all libs above
 cd libseek-thermal
 mkdir build
 cd build
-cmake ../
+cmake ..
 make
 ```
 
@@ -57,6 +54,24 @@ For more build options (debug/release, install prefix, opencv install dir, addre
 ```
 cmake-gui ../
 ```
+
+### Windows
+
+This library and example programs can be built on Windows with multiple versions of Microsoft Visual Studio. This is most readily done with Visual Studio 2015 or newer, as dependancy binaries for Windows are available from the official projects, as described below.
+
+libusb is required, and Windows binaries are available from the [offical libusb project](https://libusb.info/).
+* Download the latest binary release (files ending in `.7z`) from [libusb GitHub Releases](https://github.com/libusb/libusb/releases)
+* Extract the archive
+* Set `LIBUSB_DIR` to the extracted directory (e.g., `C:\local\libusb-1.0.23`)
+
+OpenCV is required, and Windows binaries are available from the [official OpenCV project](https://opencv.org/).
+* Download one of the Windows releases from the [OpenCV releases page](https://opencv.org/releases/) (3.x and 4.x work)
+* Run the self-extracting archive
+* Set `OpenCV_DIR` to the build directory containing `OpenCVConfig.cmake` (e.g., `C:\local\opencv-3.4.10\build`)
+
+Consider setting the `CMAKE_INSTALL_PREFIX` to a location in your build directory. Then after running the INSTALL target, copy the libusb and OpenCV libraries (e.g., `libusb-1.0.dll` and `opencv_world430.dll`) to the `bin\` directory containing `seek_test.exe`.
+
+Before this library or example programs will work, you will need to set the driver for the USB device. The simplest way to do this is to use [Zadig](https://zadig.akeo.ie/). Run Zadig, then select `iAP Interface`, select `libusb-win32`, then click `Install Driver`.
 
 ## Getting USB access
 
@@ -99,8 +114,8 @@ seek_viewer
 Some example command lines:
 
 ```
-seek_viewer --camtype=seekpro --colormap=11 --rotate=0                     # view color mapped thermal video
-seek_viewer --camtype=seekpro --colormap=11 --rotate=0 --output=seek.avi   # record color mapped thermal video
+seek_viewer --camtype=seekpro --colormap=11 --rotate=0                                  # view color mapped thermal video
+seek_viewer --camtype=seekpro --colormap=11 --rotate=0 --mode=file --output=seek.avi    # record color mapped thermal video
 ```
 
 ## Linking the library to another program
@@ -131,21 +146,21 @@ Procedure:
 2) Run:
 ```
 # when using the Seek Thermal compact
-seek_create_flat_field -c seek seek_ffc.png
+seek_create_flat_field -tseek
 
 # When using the Seek Thermal compact pro
-seek_create_flat_field -c seekpro seekpro_ffc.png
+seek_create_flat_field -tseekpro
 ```
-The program will run for a few seconds and produces a .png file.
+The program will run for a few seconds and produces a flat_field.png file.
 
 3) Provide the produced .png file to one of the test programs:
 
 ```
 # when using the Seek Thermal compact
-seek_test seek_ffc.png
-seek_viewer -t seek -F seek_ffc.png
+seek_test flat_field.png
+seek_viewer -t seek -F flat_field.png
 
 # When using the Seek Thermal compact pro
-seek_test_pro seekpro_ffc.png
-seek_viewer -t seekpro -F seekpro_ffc.png
+seek_test_pro flat_field.png
+seek_viewer -t seekpro -F flat_field.png
 ```

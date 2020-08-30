@@ -3,3 +3,4 @@ tags
 *.o
 *.a
 *.so
+.vs/

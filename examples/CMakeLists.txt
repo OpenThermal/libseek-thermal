@@ -1,14 +1,13 @@
 include_directories (
     ${libseek-thermal_SOURCE_DIR}/src
     ${OpenCV_INCLUDE_DIRS}
-    /usr/include/libusb-1.0
+    ${LIBUSB_INCLUDE_DIRS}
 )
 
 link_libraries (
     seek_static
-    -lboost_program_options
     ${OpenCV_LIBRARIES}
-    -lusb-1.0
+    ${LIBUSB_LIBRARIES}
 )
 
 add_executable (seek_test seek_test.cpp)
