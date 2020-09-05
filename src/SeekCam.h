@@ -61,7 +61,7 @@ public:
 
 protected:
 
-    SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_height, size_t raw_width, cv::Rect roi, std::string ffc_filename);
+    SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_height, size_t raw_width, size_t request_size, cv::Rect roi, std::string ffc_filename);
     ~SeekCam();
 
     virtual bool init_cam() = 0;
@@ -84,6 +84,7 @@ protected:
     SeekDevice m_dev;
     uint16_t* m_raw_data;
     size_t m_raw_data_size;
+    size_t m_request_size;
     cv::Mat m_raw_frame;
     cv::Mat m_flat_field_calibration_frame;
     cv::Mat m_additional_ffc;

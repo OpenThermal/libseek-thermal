@@ -107,7 +107,7 @@ bool SeekDevice::request_get(DeviceCommand::Enum command, std::vector<uint8_t>& 
     return control_transfer(1, static_cast<char>(command), 0, 0, data);
 }
 
-bool SeekDevice::fetch_frame(uint16_t* buffer, std::size_t size)
+bool SeekDevice::fetch_frame(uint16_t* buffer, std::size_t size, std::size_t request_size)
 {
     int res;
     int actual_length;
@@ -116,9 +116,12 @@ bool SeekDevice::fetch_frame(uint16_t* buffer, std::size_t size)
     int done = 0;
 
     while (todo != 0) {
-        debug("Asking for %d B of data at %d\n", todo, done);
-        res = libusb_bulk_transfer(m_handle, 0x81, &buf[done], todo, &actual_length, m_timeout);
-        if (res != 0) {
+        debug("Asking for %d B of data at %d\n", request_size, done);
+        res = libusb_bulk_transfer(m_handle, 0x81, &buf[done], request_size, &actual_length, m_timeout);
+        if (res == LIBUSB_ERROR_TIMEOUT)
+        {
+            error("Error: LIBUSB_ERROR_TIMEOUT");
+        } else if (res != 0) {
             error("Error: bulk transfer failed: %s\n", libusb_error_name(res));
             return false;
         }

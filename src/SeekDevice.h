@@ -104,11 +104,12 @@ public:
 
     /*
      *  get a raw camera frame previously requested
-     *  buffer:     buffer to store the received frame
-     *  size:       number of uint16_t words the buffer can hold
+     *  buffer:         buffer to store the received frame
+     *  size:           number of uint16_t words the buffer can hold
+     *  request_size:   number of bytes to request in each read
      *  Returns true on success
      */
-    bool fetch_frame(uint16_t* buffer, std::size_t size);
+    bool fetch_frame(uint16_t* buffer, std::size_t size, std::size_t request_size);
 
 private:
     int m_vendor_id;
