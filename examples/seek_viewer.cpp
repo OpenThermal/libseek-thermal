@@ -69,7 +69,7 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
 void key_handler(char scancode) {
     switch (scancode) {
         case 'f': {
-            int windowFlag = getWindowProperty(WINDOW_NAME, WindowPropertyFlags::WND_PROP_FULLSCREEN) == cv::WINDOW_FULLSCREEN ? WINDOW_NORMAL : WINDOW_FULLSCREEN;
+            int windowFlag = getWindowProperty(WINDOW_NAME, WindowPropertyFlags::WND_PROP_FULLSCREEN) == cv::WINDOW_FULLSCREEN ? cv::WINDOW_NORMAL : cv::WINDOW_FULLSCREEN;
             setWindowProperty(WINDOW_NAME, WindowPropertyFlags::WND_PROP_FULLSCREEN, windowFlag);
             break;
         }
@@ -262,7 +262,7 @@ int main(int argc, char** argv) {
     } else if (mode == "window") {
         namedWindow(WINDOW_NAME, cv::WINDOW_NORMAL);
         setWindowProperty(WINDOW_NAME, WindowPropertyFlags::WND_PROP_ASPECT_RATIO, cv::WINDOW_KEEPRATIO);
-        resizeWindow(WINDOW_NAME, seekframe.cols, seekframe.rows);
+        resizeWindow(WINDOW_NAME, outframe.cols, outframe.rows);
     }
 
 
