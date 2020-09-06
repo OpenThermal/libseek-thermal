@@ -120,7 +120,7 @@ bool SeekDevice::fetch_frame(uint16_t* buffer, std::size_t size, std::size_t req
         res = libusb_bulk_transfer(m_handle, 0x81, &buf[done], request_size, &actual_length, m_timeout);
         if (res == LIBUSB_ERROR_TIMEOUT)
         {
-            error("Error: LIBUSB_ERROR_TIMEOUT");
+            error("Error: LIBUSB_ERROR_TIMEOUT\n");
         } else if (res != 0) {
             error("Error: bulk transfer failed: %s\n", libusb_error_name(res));
             return false;

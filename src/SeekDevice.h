@@ -66,7 +66,7 @@ public:
      *  product_id: usb product id
      *  timeout:    timeout usb requests
      */
-    SeekDevice(int vendor_id, int product_id, int timeout=10000);
+    SeekDevice(int vendor_id, int product_id, int timeout=500);
 
     ~SeekDevice();
 
