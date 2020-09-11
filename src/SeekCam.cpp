@@ -9,7 +9,7 @@
 
 using namespace LibSeek;
 
-SeekCam::SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_height, size_t raw_width, cv::Rect roi, std::string ffc_filename) :
+SeekCam::SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_height, size_t raw_width, size_t request_size, cv::Rect roi, std::string ffc_filename) :
     m_offset(0x4000),
     m_ffc_filename(ffc_filename),
     m_is_opened(false),
@@ -21,6 +21,7 @@ SeekCam::SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_hei
                 CV_16UC1,
                 buffer,
                 cv::Mat::AUTO_STEP),
+    m_request_size(request_size),
     m_flat_field_calibration_frame(),
     m_additional_ffc(),
     m_dead_pixel_mask()
@@ -194,7 +195,7 @@ bool SeekCam::get_frame()
         return false;
 
     /* store frame data */
-    if (!m_dev.fetch_frame(m_raw_data, m_raw_data_size))
+    if (!m_dev.fetch_frame(m_raw_data, m_raw_data_size, m_request_size))
         return false;
 
     return true;
