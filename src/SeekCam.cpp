@@ -16,12 +16,12 @@ SeekCam::SeekCam(int vendor_id, int product_id, uint16_t* buffer, size_t raw_hei
     m_dev(vendor_id, product_id),
     m_raw_data(buffer),
     m_raw_data_size(raw_height * raw_width),
+    m_request_size(request_size),
     m_raw_frame(raw_height,
                 raw_width,
                 CV_16UC1,
                 buffer,
                 cv::Mat::AUTO_STEP),
-    m_request_size(request_size),
     m_flat_field_calibration_frame(),
     m_additional_ffc(),
     m_dead_pixel_mask()
