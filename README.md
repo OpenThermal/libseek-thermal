@@ -111,7 +111,8 @@ seek_test_pro
 seek_viewer
 ```
 
-Some example command lines:
+### seek_viewer
+seek_viewer is bare bones UI for the seek thermal devices. It can display video on screen, record it to a file, or stream it to a v4l2 loopback device for integration with image processing pipelines. It supports image rotation, scaling, and color mapping using any of the OpenCV color maps. While running `f` will set the display output full screen and `s` will freezeframe.
 
 ```
 seek_viewer --camtype=seekpro --colormap=11 --rotate=0                          # view color mapped thermal video
