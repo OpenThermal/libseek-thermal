@@ -4,3 +4,5 @@ tags
 *.a
 *.so
 .vs/
+out/**
+CMakeSettings.json
