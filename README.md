@@ -102,6 +102,7 @@ with '00x' the usb bus found with the lsusb command
 ./examples/seek_test       # Minimal Thermal Compact/CompactXR example
 ./examples/seek_test_pro   # Minimal Thermal CompactPRO example
 ./examples/seek_viewer     # Example with more features supporting all cameras, run with --help for command line options
+./examples/seek_snapshot   # Takes still images, run with --help for command line options
 ```
 
 Or if you installed the library you can run from any location:
@@ -120,6 +121,10 @@ seek_viewer --camtype=seekpro --colormap=11 --rotate=0                          
 seek_viewer --camtype=seekpro --colormap=11 --mode=file --output=seek.avi       # record color mapped thermal video
 seek_viewer --camtype=seekpro --colormap=11 --mode=v4l2 --output=/dev/video0    # stream the thermal video to v4l2 device
 ```
+
+### seek_snapshot
+seek_snapshot takes still images. This is useful for intergrating into shell scripts. It supports rotation and color mapping in the same manner as seek_viewer. Run with --help for all options.
+
 
 ## Linking the library to another program
 
