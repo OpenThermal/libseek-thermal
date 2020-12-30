@@ -62,6 +62,7 @@ This library and example programs can be built on Windows with multiple versions
 libusb is required, and Windows binaries are available from the [offical libusb project](https://libusb.info/).
 * Download the latest binary release (files ending in `.7z`) from [libusb GitHub Releases](https://github.com/libusb/libusb/releases)
 * Extract the archive
+* If using libusb-1.0.24 or greater you will need to copy the contents (`MS64` & `MS32`) of the `VS201X` directory approriate for your version of visual studio up into the root `libusb-1.0.X` directory.
 * Set `LIBUSB_DIR` to the extracted directory (e.g., `C:\local\libusb-1.0.23`)
 
 OpenCV is required, and Windows binaries are available from the [official OpenCV project](https://opencv.org/).
