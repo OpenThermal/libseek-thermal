@@ -65,6 +65,7 @@ void SeekCam::close()
         m_dev.request_set(DeviceCommand::SET_OPERATION_MODE, data);
         m_dev.request_set(DeviceCommand::SET_OPERATION_MODE, data);
         m_dev.request_set(DeviceCommand::SET_OPERATION_MODE, data);
+        m_dev.close();
     }
     m_is_opened = false;
 }
