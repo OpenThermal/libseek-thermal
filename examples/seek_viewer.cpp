@@ -116,7 +116,7 @@ void key_handler(char scancode) {
             break;
         }
         case 'q': {
-            sigflag = SIGBREAK;
+            sigflag = SIGINT;
         }
     }
 }
