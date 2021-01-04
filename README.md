@@ -62,6 +62,7 @@ This library and example programs can be built on Windows with multiple versions
 libusb is required, and Windows binaries are available from the [offical libusb project](https://libusb.info/).
 * Download the latest binary release (files ending in `.7z`) from [libusb GitHub Releases](https://github.com/libusb/libusb/releases)
 * Extract the archive
+* If using libusb-1.0.24 or greater you will need to copy the contents (`MS64` & `MS32`) of the `VS201X` directory approriate for your version of visual studio up into the root `libusb-1.0.X` directory.
 * Set `LIBUSB_DIR` to the extracted directory (e.g., `C:\local\libusb-1.0.23`)
 
 OpenCV is required, and Windows binaries are available from the [official OpenCV project](https://opencv.org/).
@@ -101,6 +102,7 @@ with '00x' the usb bus found with the lsusb command
 ./examples/seek_test       # Minimal Thermal Compact/CompactXR example
 ./examples/seek_test_pro   # Minimal Thermal CompactPRO example
 ./examples/seek_viewer     # Example with more features supporting all cameras, run with --help for command line options
+./examples/seek_snapshot   # Takes still images, run with --help for command line options
 ```
 
 Or if you installed the library you can run from any location:
@@ -111,12 +113,18 @@ seek_test_pro
 seek_viewer
 ```
 
-Some example command lines:
+### seek_viewer
+seek_viewer is bare bones UI for the seek thermal devices. It can display video on screen, record it to a file, or stream it to a v4l2 loopback device for integration with image processing pipelines. It supports image rotation, scaling, and color mapping using any of the OpenCV color maps. While running `f` will set the display output full screen and `s` will freezeframe.
 
 ```
-seek_viewer --camtype=seekpro --colormap=11 --rotate=0                                  # view color mapped thermal video
-seek_viewer --camtype=seekpro --colormap=11 --rotate=0 --mode=file --output=seek.avi    # record color mapped thermal video
+seek_viewer --camtype=seekpro --colormap=11 --rotate=0                          # view color mapped thermal video
+seek_viewer --camtype=seekpro --colormap=11 --mode=file --output=seek.avi       # record color mapped thermal video
+seek_viewer --camtype=seekpro --colormap=11 --mode=v4l2 --output=/dev/video0    # stream the thermal video to v4l2 device
 ```
+
+### seek_snapshot
+seek_snapshot takes still images. This is useful for intergrating into shell scripts. It supports rotation and color mapping in the same manner as seek_viewer. Run with --help for all options.
+
 
 ## Linking the library to another program
 

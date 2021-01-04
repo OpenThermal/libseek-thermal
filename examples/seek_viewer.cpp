@@ -27,19 +27,52 @@ const std::string WINDOW_NAME = "SeekThermal";
 // Setup sig handling
 static volatile sig_atomic_t sigflag = 0;
 
+
+bool auto_exposure_lock = false;
+
 void handle_sig(int sig) {
     (void)sig;
     sigflag = 1;
 }
 
+
+// Normalize the image so that it uses the full color space available for display. 
+void normalize(Mat &inframe) {
+    static double min =-1, max = -1;
+    static float multiplier = -1;
+
+    if (auto_exposure_lock) {
+        if (min == -1) {
+            cv::minMaxLoc(inframe, &min, &max);
+            multiplier = 65535 / (max - min);
+        }
+        for (int y = 0; y < inframe.rows; y++) {
+            for (int x = 0; x < inframe.cols; x++) {
+                uint16_t val = inframe.at<uint16_t>(y, x);
+                if (val > max) {
+                    val = 65535;
+                } else if (val < min) {
+                    val = 0;
+                } else {
+                    val = (val - min) * multiplier;
+                }
+                inframe.at<uint16_t>(y, x) = val;
+            }
+        }
+    } else {
+        normalize(inframe, inframe, 0, 65535, NORM_MINMAX);
+        min = -1;
+    }
+}
+
 // Function to process a raw (corrected) seek frame
 void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int rotate) {
-    Mat frame_g8, frame_g16; // Transient Mat containers for processing
+    Mat frame_g8; // Transient Mat containers for processing
 
-    normalize(inframe, frame_g16, 0, 65535, NORM_MINMAX);
+    normalize(inframe);
 
     // Convert seek CV_16UC1 to CV_8UC1
-    frame_g16.convertTo(frame_g8, CV_8UC1, 1.0/256.0 );
+    inframe.convertTo(frame_g8, CV_8UC1, 1.0/256.0 );
 
     // Rotate image
     if (rotate == 90) {
@@ -76,6 +109,14 @@ void key_handler(char scancode) {
         case 's': {
             waitKey(0);
             break;
+        }
+        case 'a': {
+            auto_exposure_lock = !auto_exposure_lock;
+            std::cout << "AEL:" << auto_exposure_lock << std::endl;
+            break;
+        }
+        case 'q': {
+            sigflag = SIGINT;
         }
     }
 }
@@ -143,7 +184,7 @@ int main(int argc, char** argv) {
     args::ValueFlag<std::string> _ffc(parser, "FFC", "Additional Flat Field calibration - provide ffc file", {'F', "FFC"});
     args::ValueFlag<int> _fps(parser, "fps", "Video Output FPS - Kludge factor", {'f', "fps"});
     args::ValueFlag<float> _scale(parser, "scaling", "Output Scaling - multiple of original image", {'s', "scale"});
-    args::ValueFlag<int> _colormap(parser, "colormap", "Color Map - number between 0 and 12", {'c', "colormap"});
+    args::ValueFlag<int> _colormap(parser, "colormap", "Color Map - number between 0 and 21 (see: cv::ColormapTypes for maps available in your version of OpenCV)", { 'c', "colormap" });
     args::ValueFlag<int> _rotate(parser, "rotate", "Rotation - 0, 90, 180 or 270 (default) degrees", {'r', "rotate"});
     args::ValueFlag<std::string> _camtype(parser, "camtype", "Seek Thermal Camera Model - seek or seekpro", {'t', "camtype"});
 
@@ -184,7 +225,7 @@ int main(int argc, char** argv) {
     if (_fps)
         fps = args::get(_fps);
 
-    // Colormap int corresponding to enum: http://docs.opencv.org/3.2.0/d3/d50/group__imgproc__colormap.html
+    // Colormap int corresponding to enum: https://docs.opencv.org/master/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
     int colormap = -1;
     if (_colormap)
         colormap = args::get(_colormap);
