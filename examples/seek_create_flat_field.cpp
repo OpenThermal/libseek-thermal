@@ -26,16 +26,19 @@ int main(int argc, char** argv)
     try {
         parser.ParseCLI(argc, argv);
     }
-    catch (args::Help) {
+    // Parse arguments
+    // ericb 2022 01 17 : fix warnings
+    // See : https://stackoverflow.com/questions/62030341/what-is-this-catching-polymorphic-type-x-by-value-wcatch-value
+    catch (args::Help const &) {
         std::cout << parser;
         return 0;
     }
-    catch (args::ParseError e) {
+    catch (args::ParseError const & e) {
         std::cerr << e.what() << std::endl;
         std::cerr << parser;
         return 1;
     }
-    catch (args::ValidationError e) {
+    catch (args::ValidationError const & e) {
         std::cerr << e.what() << std::endl;
         std::cerr << parser;
         return 1;
