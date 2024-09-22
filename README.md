@@ -11,6 +11,9 @@ Supported cameras:
 * [Seek Thermal CompactXR](http://www.thermal.com/products/compactxr)
 * [Seek Thermal CompactPRO](http://www.thermal.com/products/compactpro)
 
+Not supported (yet?):
+* Seek Nano 200/300
+
 Seek Thermal CompactPRO example:
 
 ![Alt text](/doc/colormap_hot.png?raw=true "Colormap seek thermal pro")
