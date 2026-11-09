@@ -6,7 +6,7 @@
 #include "SeekDevice.h"
 #include "SeekLogging.h"
 #include <libusb.h>
-#include <endian.h>
+#include "endian_compat.h"
 #include <stdio.h>
 
 using namespace LibSeek;
