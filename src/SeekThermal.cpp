@@ -5,7 +5,7 @@
 
 #include "SeekThermal.h"
 #include "SeekLogging.h"
-#include <endian.h>
+#include "endian_compat.h"
 
 using namespace LibSeek;
 

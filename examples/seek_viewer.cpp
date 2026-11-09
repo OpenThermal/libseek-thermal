@@ -30,6 +30,9 @@ static volatile sig_atomic_t sigflag = 0;
 
 bool auto_exposure_lock = false;
 
+// Mirror mode: 'n' none, 'h' horizontal, 'v' vertical, 'b' both
+char flip_mode = 'n';
+
 void handle_sig(int sig) {
     (void)sig;
     sigflag = 1;
@@ -85,6 +88,15 @@ void process_frame(Mat &inframe, Mat &outframe, float scale, int colormap, int r
         flip(frame_g8, frame_g8, 0);
     }
 
+    // Mirror image
+    if (flip_mode == 'h') {
+        flip(frame_g8, frame_g8, 1);
+    } else if (flip_mode == 'v') {
+        flip(frame_g8, frame_g8, 0);
+    } else if (flip_mode == 'b') {
+        flip(frame_g8, frame_g8, -1);
+    }
+
     // Resize image: http://docs.opencv.org/3.2.0/da/d54/group__imgproc__transform.html#ga5bb5a1fea74ea38e1a5445ca803ff121
     // Note this is expensive computationally, only do if option set != 1
     if (scale != 1.0) {
@@ -113,6 +125,11 @@ void key_handler(char scancode) {
         case 'a': {
             auto_exposure_lock = !auto_exposure_lock;
             std::cout << "AEL:" << auto_exposure_lock << std::endl;
+            break;
+        }
+        case 'm': {
+            flip_mode = flip_mode == 'h' ? 'n' : 'h';
+            std::cout << "Mirror:" << flip_mode << std::endl;
             break;
         }
         case 'q': {
@@ -186,6 +203,7 @@ int main(int argc, char** argv) {
     args::ValueFlag<float> _scale(parser, "scaling", "Output Scaling - multiple of original image", {'s', "scale"});
     args::ValueFlag<int> _colormap(parser, "colormap", "Color Map - number between 0 and 21 (see: cv::ColormapTypes for maps available in your version of OpenCV)", { 'c', "colormap" });
     args::ValueFlag<int> _rotate(parser, "rotate", "Rotation - 0, 90, 180 or 270 (default) degrees", {'r', "rotate"});
+    args::ValueFlag<std::string> _flip(parser, "flip", "Mirror - h (horizontal), v (vertical), b (both); 'm' key toggles horizontal", {"flip"});
     args::ValueFlag<std::string> _camtype(parser, "camtype", "Seek Thermal Camera Model - seek or seekpro", {'t', "camtype"});
 
     // Parse arguments
@@ -234,6 +252,15 @@ int main(int argc, char** argv) {
     int rotate = 270;
     if (_rotate)
         rotate = args::get(_rotate);
+
+    if (_flip) {
+        std::string f = args::get(_flip);
+        if (f != "h" && f != "v" && f != "b") {
+            std::cerr << "--flip must be h, v or b" << std::endl;
+            return 1;
+        }
+        flip_mode = f[0];
+    }
 
     std::string output = "";
     if (_output)
